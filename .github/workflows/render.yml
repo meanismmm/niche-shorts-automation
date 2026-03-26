@@ -1,0 +1,50 @@
+name: 영상 자동 합성
+
+on:
+  workflow_dispatch:
+    inputs:
+      script_data:
+        description: '스크립트 JSON 데이터'
+        required: true
+      audio_url:
+        description: 'TTS 음성 URL (base64)'
+        required: false
+      sources_data:
+        description: '선택된 영상 소스 JSON'
+        required: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 레포지토리 체크아웃
+        uses: actions/checkout@v4
+
+      - name: FFmpeg 설치
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Python 설정
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Python 패키지 설치
+        run: pip install requests Pillow
+
+      - name: 렌더링 스크립트 실행
+        env:
+          SCRIPT_DATA:    ${{ github.event.inputs.script_data }}
+          SOURCES_DATA:   ${{ github.event.inputs.sources_data }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_CLOUD_KEY: ${{ secrets.GOOGLE_CLOUD_KEY }}
+        run: python scripts/render.py
+
+      - name: 완성 영상 업로드 (아티팩트)
+        uses: actions/upload-artifact@v4
+        with:
+          name: completed-video
+          path: output/final.mp4
+          retention-days: 3
