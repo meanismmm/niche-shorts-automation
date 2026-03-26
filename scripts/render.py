@@ -19,7 +19,7 @@ CLAUDE_KEY   = os.environ.get('CLAUDE_API_KEY', '')
 Path('output').mkdir(exist_ok=True)
 Path('temp').mkdir(exist_ok=True)
 
-print("=== 니치 쇼츠 자동 렌더링 시작 ===")
+print("=== 니치 쇼츠 자동 렌더링 v2.0 ===")
 print(f"상품: {SCRIPT_DATA.get('product', '알 수 없음')}")
 print(f"유형: {SCRIPT_DATA.get('type', '알 수 없음')}")
 
@@ -52,55 +52,58 @@ def install_fonts():
     print("  폰트 설치 완료")
 
 # =============================================
-# 1단계: Gemini 이미지 생성 (구간별)
+# 1단계: Gemini 이미지 생성 (구간별, 컬러)
 # =============================================
 def generate_gemini_images():
     print("\n[1/6] Gemini AI 이미지 생성 중...")
     is_wow  = SCRIPT_DATA.get('type') == 'wow'
     product = SCRIPT_DATA.get('product', '')
+    analysis = SCRIPT_DATA.get('analysis', {})
 
-    # 구간별 프롬프트 — 상품에 특화된 구체적 장면
+    # 분석 데이터 기반 구체적 프롬프트
+    main_pain    = analysis.get('main_pains', [''])[0] if analysis.get('main_pains') else ''
+    visual_scene = analysis.get('visual_scenes', [''])[0] if analysis.get('visual_scenes') else ''
+
     if is_wow:
         prompts = {
-            'opening':  f'Extreme close-up mysterious shot of {product}, black background, dramatic neon lighting, cinematic, ultra high contrast, no text, no people',
-            'proof':    f'{product} product detail shot, white studio background, professional lighting, sharp focus, no text',
-            'usage':    f'Person happily using {product} in daily life, warm natural light, lifestyle photography, Korean person, no text',
-            'cta':      f'{product} on minimal dark background, spotlight lighting, premium feel, no text',
+            'opening': f'Dramatic cinematic product shot of {product}, black background, colorful neon lighting, ultra high contrast, photorealistic, vertical 9:16 portrait',
+            'proof':   f'{product} product detail macro shot, clean white studio background, professional product photography, sharp focus, vibrant colors, vertical 9:16 portrait',
+            'usage':   f'Person happily using {product}, {visual_scene or "lifestyle setting"}, warm colorful lighting, vertical 9:16 portrait, photorealistic',
+            'cta':     f'{product} on minimal background, spotlight, premium feel, vertical 9:16 portrait',
         }
     else:
         prompts = {
-            'opening':  f'Korean person looking frustrated or stressed about problem that {product} solves, dramatic lighting, cinematic portrait, emotional expression, no text',
-            'empathy':  f'Close-up of the specific problem situation that {product} solves, messy or uncomfortable scene, realistic, no text',
-            'solution': f'Korean person smiling while using {product}, clean bright background, before-after feel, satisfied expression, no text',
-            'cta':      f'{product} product shot on dark background with spotlight, premium minimal style, no text',
+            'opening':  f'Korean person looking stressed and frustrated, close-up emotional portrait, dramatic moody lighting, "{main_pain or "daily problem"}", vertical 9:16, photorealistic',
+            'empathy':  f'Person struggling with daily problem that {product} solves, realistic scene, cinematic lighting, vertical 9:16, photorealistic',
+            'solution': f'Korean person smiling with satisfaction while using {product}, {visual_scene or "bright lifestyle"}, warm natural lighting, vertical 9:16, photorealistic',
+            'cta':      f'{product} product shot with lifestyle background, vibrant colors, vertical 9:16, photorealistic',
         }
 
     images = {}
     section_keys = list(prompts.keys())
 
     for key in section_keys:
-        # 웹앱에서 선택한 소스가 있으면 우선 사용
         source   = SOURCES_DATA.get(key, {})
         selected = source.get('selected')
 
-        if selected and selected.get('data', {}).get('url') and selected.get('idx') != 'ai':
-            # Pexels 영상 선택됨 — 다운로드
+        if selected and selected.get('data', {}).get('url'):
+            # Pexels 영상 선택됨
             url  = selected['data']['url']
             path = f'temp/src_{key}.mp4'
-            print(f"  [{key}] 선택된 Pexels 영상 다운로드...")
+            print(f"  [{key}] Pexels 영상 다운로드...")
             try:
                 r = requests.get(url, timeout=60, stream=True)
                 with open(path, 'wb') as f:
                     for chunk in r.iter_content(8192):
                         f.write(chunk)
                 images[key] = {'type': 'video', 'path': path}
-                print(f"  [{key}] 다운로드 완료")
+                print(f"  [{key}] 완료")
                 continue
             except Exception as e:
                 print(f"  [{key}] 다운로드 실패: {e}")
 
-        # Gemini 이미지 생성 (기본 + AI 선택 시)
-        print(f"  [{key}] Gemini 이미지 생성: {prompts[key][:60]}...")
+        # Gemini 이미지 생성 (기본)
+        print(f"  [{key}] Gemini 이미지 생성 중...")
         try:
             res = requests.post(
                 f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key={GEMINI_KEY}',
@@ -117,12 +120,12 @@ def generate_gemini_images():
                 with open(path, 'wb') as f:
                     f.write(base64.b64decode(img_part['inlineData']['data']))
                 images[key] = {'type': 'image', 'path': path}
-                print(f"  [{key}] Gemini 이미지 생성 완료")
+                print(f"  [{key}] Gemini 이미지 완료")
             else:
-                print(f"  [{key}] Gemini 응답 없음 — 검정 배경 사용")
+                print(f"  [{key}] Gemini 응답 없음 — 검정 배경")
                 images[key] = {'type': 'color'}
         except Exception as e:
-            print(f"  [{key}] 이미지 생성 실패: {e}")
+            print(f"  [{key}] 실패: {e}")
             images[key] = {'type': 'color'}
 
     return images
@@ -163,7 +166,6 @@ def generate_tts():
     }
     voice_name, voice_gender = voice_map.get(cat_key, ('ko-KR-Wavenet-C', 'MALE'))
 
-    # SSML 마크 삽입
     ssml_parts = ['<speak>']
     for i, s in enumerate(sentences):
         ssml_parts.append(f'<mark name="s{i}"/>{s}')
@@ -188,7 +190,6 @@ def generate_tts():
         with open('temp/audio.mp3', 'wb') as f:
             f.write(base64.b64decode(data['audioContent']))
 
-        # 타임포인트 추출
         timepoints = {}
         for tp in data.get('timepoints', []):
             mark = tp.get('markName', '')
@@ -209,28 +210,31 @@ def generate_tts():
         return sentences, narration, 25.0, timepoints
 
 # =============================================
-# 3단계: 구간별 클립 생성
+# 3단계: 구간별 클립 생성 (컬러)
 # =============================================
 def make_clip(source, duration, output_path, speed=1.0):
     w, h     = 1080, 1920
     duration = max(duration, 0.5)
-    vf_base  = f'scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},format=gray'
+    # ★ 컬러 유지 — format=gray 제거
+    vf_scale = f'scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}'
 
     if source['type'] == 'video' and source.get('path') and Path(source['path']).exists():
         pts = f'setpts={1/speed:.4f}*PTS'
         cmd = ['ffmpeg', '-i', source['path'],
-               '-vf', f'{vf_base},{pts}',
+               '-vf', f'{vf_scale},{pts}',
                '-t', str(duration), '-r', '30',
-               '-c:v', 'libx264', '-preset', 'fast', '-an',
+               '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
                output_path, '-y']
+
     elif source['type'] == 'image' and source.get('path') and Path(source['path']).exists():
-        # 이미지 — 줌인 효과 추가 (더 역동적)
-        zoom = f'zoompan=z=\'min(zoom+0.001,1.3)\':d={int(duration*30)}:s={w}x{h}'
+        # 줌인 효과 (더 역동적)
+        zoom = f'zoompan=z=\'min(zoom+0.0008,1.25)\':d={int(duration*30)}:s={w}x{h}'
         cmd = ['ffmpeg', '-loop', '1', '-i', source['path'],
-               '-vf', f'scale={w*2}:{h*2},{zoom},format=gray',
+               '-vf', f'scale={w*2}:{h*2},{zoom}',
                '-t', str(duration), '-r', '30',
-               '-c:v', 'libx264', '-preset', 'fast', '-an',
+               '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
                output_path, '-y']
+
     else:
         cmd = ['ffmpeg', '-f', 'lavfi',
                '-i', f'color=black:size={w}x{h}:rate=30',
@@ -238,12 +242,13 @@ def make_clip(source, duration, output_path, speed=1.0):
                output_path, '-y']
 
     run(cmd)
-    # 실패 시 단순 이미지로 재시도
+
+    # 줌인 실패 시 단순 이미지로 재시도
     if not Path(output_path).exists() and source['type'] == 'image':
         cmd2 = ['ffmpeg', '-loop', '1', '-i', source['path'],
-                '-vf', vf_base,
+                '-vf', vf_scale,
                 '-t', str(duration), '-r', '30',
-                '-c:v', 'libx264', '-preset', 'fast', '-an',
+                '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
                 output_path, '-y']
         run(cmd2)
 
@@ -253,7 +258,7 @@ def build_clips(sources, total_duration, timepoints, sentences):
 
     if is_wow:
         section_keys = ['opening', 'proof', 'usage', 'cta']
-        speeds       = {'opening': 1.2, 'proof': 0.8, 'usage': 1.05, 'cta': 1.0}
+        speeds       = {'opening': 1.2, 'proof': 0.85, 'usage': 1.05, 'cta': 1.0}
     else:
         section_keys = ['opening', 'empathy', 'solution', 'cta']
         speeds       = {'opening': 1.15, 'empathy': 1.0, 'solution': 1.0, 'cta': 1.0}
@@ -284,46 +289,49 @@ def build_clips(sources, total_duration, timepoints, sentences):
 # =============================================
 # 4단계: 오프닝 강렬한 텍스트 오버레이
 # =============================================
-def add_opening_text_overlay(clip_path, opening_text, duration):
-    """첫 장면에 대형 후킹 텍스트 오버레이 추가"""
-    print("\n[4/6] 오프닝 텍스트 오버레이 추가 중...")
+def add_opening_overlay(clip_path, opening_text, duration):
+    print("\n[4/6] 오프닝 텍스트 오버레이...")
     output_path = 'temp/clip_opening_final.mp4'
 
-    # 텍스트 줄바꿈 (15자 기준)
-    text = opening_text.replace("'", "\\'").replace('"', '\\"').replace(':', '\\:')
-    if len(opening_text) > 15:
-        mid = len(opening_text) // 2
-        text = opening_text[:mid].replace("'", "\\'") + '\\n' + opening_text[mid:].replace("'", "\\'")
+    # 텍스트 이스케이프
+    text = opening_text
+    for ch in ["'", '"', ':', '\\']:
+        text = text.replace(ch, '')
 
-    # 대형 중앙 텍스트 + 노란 강조
+    # 줄바꿈 (14자 기준)
+    if len(text) > 14:
+        mid  = len(text) // 2
+        text = text[:mid] + '\\N' + text[mid:]
+
     drawtext = (
-        f"drawtext=fontfile=/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
+        f"drawtext="
+        f"fontfile=/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
         f":text='{text}'"
-        f":fontsize=90"
+        f":fontsize=100"
         f":fontcolor=yellow"
-        f":borderw=4"
+        f":borderw=5"
         f":bordercolor=black"
         f":x=(w-text_w)/2"
         f":y=(h-text_h)/2"
-        f":enable='between(t,0.3,{duration})'"
+        f":enable='between(t,0.2,{min(duration,3.0)})'"
     )
 
     result = run([
         'ffmpeg', '-i', clip_path,
         '-vf', drawtext,
-        '-c:v', 'libx264', '-preset', 'fast', '-an',
+        '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
         output_path, '-y'
     ])
 
     if Path(output_path).exists():
-        print("  오프닝 텍스트 오버레이 완료")
+        print("  오프닝 오버레이 완료")
         return output_path
     else:
-        print("  오프닝 텍스트 실패 — 원본 사용")
+        print("  오프닝 오버레이 실패 — 원본 사용")
         return clip_path
 
 # =============================================
-# 5단계: 자막 생성 (대형 중앙 ASS)
+# 5단계: 자막 (ASS, 대형, 타임포인트 싱크)
 # =============================================
 def build_subtitles_ass(sentences, total_duration, timepoints):
     print("\n[5/6] 자막 파일 생성 중...")
@@ -336,11 +344,6 @@ def build_subtitles_ass(sentences, total_duration, timepoints):
         cs = int((t % 1) * 100)
         return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
 
-    # 대형 중앙 자막 스타일
-    # - 폰트 크기 90 (기존 72 → 대폭 확대)
-    # - 화면 하단 1/3 위치
-    # - 흰색 + 검정 외곽선 4px + 반투명 검정 배경박스
-    # - Bold
     ass = """[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
@@ -348,8 +351,8 @@ PlayResY: 1920
 
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: Default,Noto Sans CJK KR,90,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,1,0,0,0,100,100,2,0,3,5,3,2,60,60,200,1
-Style: Highlight,Noto Sans CJK KR,90,&H00FFD600,&H000000FF,&H00000000,&HAA000000,1,0,0,0,100,100,2,0,3,5,3,2,60,60,200,1
+Style: Default,Noto Sans CJK KR,82,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,1,0,0,0,100,100,2,0,3,5,3,2,60,60,160,1
+Style: Highlight,Noto Sans CJK KR,82,&H00FFD600,&H000000FF,&H00000000,&HAA000000,1,0,0,0,100,100,2,0,3,5,3,2,60,60,160,1
 
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
@@ -357,11 +360,9 @@ Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
     for i, sent in enumerate(sentences):
         start = timepoints.get(i, i * (total_duration / len(sentences)))
         end   = (timepoints.get(i+1, start + total_duration / len(sentences)) - 0.05) if i+1 < len(sentences) else (total_duration - 0.05)
-
-        # 첫 문장(오프닝)은 노란색 강조 스타일
         style = 'Highlight' if i == 0 else 'Default'
 
-        # 줄바꿈 (14자 기준)
+        # 줄바꿈
         if len(sent) > 14:
             mid  = len(sent) // 2
             sent = sent[:mid] + '\\N' + sent[mid:]
@@ -372,11 +373,11 @@ Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
     with open(path, 'w', encoding='utf-8') as f:
         f.write(ass)
 
-    print(f"  자막 {len(sentences)}개 생성 완료 (대형 중앙 스타일)")
+    print(f"  자막 {len(sentences)}개 완료 (타임포인트 싱크)")
     return path
 
 # =============================================
-# 6단계: 최종 합성
+# 6단계: 최종 합성 (컬러)
 # =============================================
 def final_render(clips, ass_path):
     print("\n[6/6] 최종 영상 합성 중...")
@@ -396,13 +397,13 @@ def final_render(clips, ass_path):
 
     abs_ass = os.path.abspath(ass_path).replace('\\', '/').replace(':', '\\:')
 
-    # 자막 + 음성 합성
+    # 자막 + 음성 합성 (컬러 유지)
     r = run([
         'ffmpeg',
         '-i', 'temp/merged.mp4',
         '-i', 'temp/audio.mp3',
         '-vf', f"ass='{abs_ass}'",
-        '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+        '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
         '-c:a', 'aac', '-b:a', '128k',
         '-shortest',
         'output/final.mp4', '-y'
@@ -414,7 +415,7 @@ def final_render(clips, ass_path):
             'ffmpeg',
             '-i', 'temp/merged.mp4',
             '-i', 'temp/audio.mp3',
-            '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+            '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
             '-c:a', 'aac', '-b:a', '128k',
             '-shortest',
             'output/final.mp4', '-y'
@@ -433,14 +434,14 @@ def final_render(clips, ass_path):
 if __name__ == '__main__':
     try:
         install_fonts()
-        sources                                      = generate_gemini_images()
-        sentences, narration, duration, timepoints   = generate_tts()
-        clips                                        = build_clips(sources, duration, timepoints, sentences)
+        sources                                    = generate_gemini_images()
+        sentences, narration, duration, timepoints = generate_tts()
+        clips                                      = build_clips(sources, duration, timepoints, sentences)
 
         # 오프닝 텍스트 오버레이
         opening_text = SCRIPT_DATA.get('opening', '')
         if clips and opening_text:
-            clips[0] = add_opening_text_overlay(clips[0], opening_text, duration)
+            clips[0] = add_opening_overlay(clips[0], opening_text, duration)
 
         ass_path = build_subtitles_ass(sentences, duration, timepoints)
         final_render(clips, ass_path)
