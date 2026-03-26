@@ -103,7 +103,7 @@ def generate_gemini_images():
         print(f"  [{key}] Gemini 이미지 생성: {prompts[key][:60]}...")
         try:
             res = requests.post(
-                f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key={GEMINI_KEY}',
+                f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key={GEMINI_KEY}',
                 json={
                     'contents': [{'parts': [{'text': prompts[key]}]}],
                     'generationConfig': {'responseModalities': ['TEXT', 'IMAGE']}
