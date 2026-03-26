@@ -7,7 +7,7 @@ on:
         description: '스크립트 JSON 데이터'
         required: true
       audio_url:
-        description: 'TTS 음성 URL (base64)'
+        description: 'TTS 음성 URL'
         required: false
       sources_data:
         description: '선택된 영상 소스 JSON'
@@ -23,7 +23,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: FFmpeg 설치
-        run: sudo apt-get install -y ffmpeg
+        uses: AnimMouse/setup-ffmpeg@v1
+
+      - name: 한국어 폰트 설치
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --fix-missing fonts-noto-cjk || true
+          fc-cache -fv || true
 
       - name: Python 설정
         uses: actions/setup-python@v4
@@ -35,10 +41,10 @@ jobs:
 
       - name: 렌더링 스크립트 실행
         env:
-          SCRIPT_DATA:    ${{ github.event.inputs.script_data }}
-          SOURCES_DATA:   ${{ github.event.inputs.sources_data }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SCRIPT_DATA:      ${{ github.event.inputs.script_data }}
+          SOURCES_DATA:     ${{ github.event.inputs.sources_data }}
+          PEXELS_API_KEY:   ${{ secrets.PEXELS_API_KEY }}
+          GEMINI_API_KEY:   ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_CLOUD_KEY: ${{ secrets.GOOGLE_CLOUD_KEY }}
         run: python scripts/render.py
 
