@@ -750,13 +750,34 @@ async function onStartRender() {
   setProgress(0);
   setStep('trigger','active');
 
+  // AI 이미지 base64 제거 — Pexels URL과 선택 정보만 전송
+  const lightSources = {};
+  for (const [key, val] of Object.entries(collectedSources)) {
+    const selected = val.selected;
+    if (selected && selected.idx === 'ai') {
+      // AI 선택 시: AI 선택 여부만 전달 (base64 제외)
+      lightSources[key] = { selected: { idx: 'ai', data: {} } };
+    } else if (selected && selected.data?.url) {
+      // Pexels 선택 시: URL만 전달
+      lightSources[key] = { selected: { idx: selected.idx, data: { url: selected.data.url, duration: selected.data.duration } } };
+    } else {
+      // 미선택
+      lightSources[key] = {};
+    }
+  }
+
   try {
+    const scriptStr  = JSON.stringify(currentScript);
+    const sourcesStr = JSON.stringify(lightSources);
+
+    console.log('script size:', scriptStr.length, 'sources size:', sourcesStr.length);
+
     const res = await fetch(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`,
       {
         method:'POST',
         headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
-        body:JSON.stringify({ref:'main',inputs:{script_data:JSON.stringify(currentScript),sources_data:JSON.stringify(collectedSources)}})
+        body:JSON.stringify({ref:'main',inputs:{script_data:scriptStr, sources_data:sourcesStr}})
       }
     );
     if (res.status!==204) { const err=await res.json(); throw new Error(err.message||'트리거 실패'); }
