@@ -6,12 +6,7 @@
 <title>니치 쇼츠 자동화</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c28;
-  --border:#2a2a3d; --accent:#7c3aed; --accent2:#06b6d4;
-  --accent3:#f59e0b; --text:#e8e8f0; --muted:#6b7280;
-  --success:#10b981; --danger:#ef4444;
-}
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c28;--border:#2a2a3d;--accent:#7c3aed;--accent2:#06b6d4;--accent3:#f59e0b;--text:#e8e8f0;--muted:#6b7280;--success:#10b981;--danger:#ef4444;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(124,58,237,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
@@ -51,6 +46,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .btn-primary:hover{background:#6d28d9;transform:translateY(-1px);}
 .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
 .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-success{background:rgba(16,185,129,.15);color:var(--success);border:1px solid rgba(16,185,129,.4);}
+.btn-success:hover{background:rgba(16,185,129,.25);}
 .btn-sm{padding:6px 12px;font-size:12px;}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
 .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px;}
@@ -77,12 +74,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .table td{padding:12px;font-size:13px;border-bottom:1px solid rgba(42,42,61,.5);vertical-align:middle;}
 .table tr:last-child td{border-bottom:none;}
 .table tr:hover td{background:rgba(124,58,237,.04);}
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .stat-card.p::before{background:linear-gradient(90deg,var(--accent),transparent);}
 .stat-card.c::before{background:linear-gradient(90deg,var(--accent2),transparent);}
 .stat-card.a::before{background:linear-gradient(90deg,var(--accent3),transparent);}
+.stat-card.g::before{background:linear-gradient(90deg,var(--success),transparent);}
 .stat-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
 .stat-value{font-size:26px;font-weight:900;font-family:'Space Mono',monospace;}
 .notification{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:13px;z-index:9999;transform:translateY(100px);opacity:0;transition:all .3s;max-width:320px;}
@@ -101,13 +99,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .badge-wow{background:rgba(245,158,11,.15);color:var(--accent3);border:1px solid rgba(245,158,11,.3);}
 .badge-live{background:rgba(16,185,129,.15);color:var(--success);border:1px solid rgba(16,185,129,.3);}
 input[type=range]{accent-color:var(--accent);}
-
-/* 영상 소스 그리드 */
 .source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
 .source-card{border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:all .15s;position:relative;background:var(--surface2);}
 .source-card:hover{border-color:var(--accent);}
 .source-card.selected{border-color:var(--accent);box-shadow:0 0 12px rgba(124,58,237,.4);}
-.source-card img,.source-card video{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;}
+.source-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;}
 .source-card-label{position:absolute;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(0,0,0,.7);font-size:10px;color:#fff;font-family:'Space Mono',monospace;}
 .source-card-type{position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:4px;font-size:9px;font-family:'Space Mono',monospace;font-weight:700;}
 .type-video{background:rgba(6,182,212,.8);color:#fff;}
@@ -115,7 +111,18 @@ input[type=range]{accent-color:var(--accent);}
 .source-section{margin-bottom:20px;}
 .source-section-title{font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
 .regen-btn{font-size:10px;padding:2px 8px;background:rgba(245,158,11,.15);color:var(--accent3);border:1px solid rgba(245,158,11,.3);border-radius:4px;cursor:pointer;font-family:'Space Mono',monospace;}
-.regen-btn:hover{background:rgba(245,158,11,.25);}
+
+/* 렌더링 진행 상태 */
+.render-step{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);}
+.render-step-icon{font-size:20px;min-width:28px;text-align:center;}
+.render-step-text{flex:1;}
+.render-step-title{font-size:13px;font-weight:700;}
+.render-step-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.render-step.done{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.05);}
+.render-step.active{border-color:rgba(124,58,237,.4);background:rgba(124,58,237,.08);}
+.render-step.waiting{opacity:.4;}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:16px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .5s ease;}
 </style>
 </head>
 <body>
@@ -123,7 +130,7 @@ input[type=range]{accent-color:var(--accent);}
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-main">NICHE.AUTO</div>
-      <div class="logo-sub">쿠팡파트너스 쇼츠 v1.1</div>
+      <div class="logo-sub">쿠팡파트너스 쇼츠 v1.2</div>
     </div>
     <nav class="nav">
       <div class="nav-label">메인</div>
@@ -131,6 +138,7 @@ input[type=range]{accent-color:var(--accent);}
       <div class="nav-label" style="margin-top:12px;">파이프라인</div>
       <div class="nav-item" onclick="go('generate',this)">✍️ 스크립트 생성</div>
       <div class="nav-item" onclick="go('sources',this)">🎬 영상 소스 수집</div>
+      <div class="nav-item" onclick="go('render',this)">🚀 영상 생성</div>
       <div class="nav-item" onclick="go('history',this)">📁 히스토리</div>
       <div class="nav-label" style="margin-top:12px;">시스템</div>
       <div class="nav-item" onclick="go('settings',this)">⚙️ 설정</div>
@@ -159,6 +167,7 @@ input[type=range]{accent-color:var(--accent);}
           <div class="stat-card p"><div class="stat-label">생성된 스크립트</div><div class="stat-value" id="s-scripts">0</div></div>
           <div class="stat-card c"><div class="stat-label">PAIN형</div><div class="stat-value" id="s-pain">0</div></div>
           <div class="stat-card a"><div class="stat-label">WOW형</div><div class="stat-value" id="s-wow">0</div></div>
+          <div class="stat-card g"><div class="stat-label">생성된 영상</div><div class="stat-value" id="s-videos">0</div></div>
         </div>
         <div class="card">
           <div class="card-title">⚡ 파이프라인 현황</div>
@@ -168,14 +177,15 @@ input[type=range]{accent-color:var(--accent);}
               <div style="flex:1;"><div style="font-size:13px;font-weight:700;">스크립트 + 음성 생성 ✅</div><div style="font-size:11px;color:var(--muted);">Claude API → PAIN/WOW 스크립트 → TTS 음성</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
-            <div onclick="go('sources',document.querySelectorAll('.nav-item')[2])" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(6,182,212,.3);">
+            <div onclick="go('sources',document.querySelectorAll('.nav-item')[2])" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(16,185,129,.3);">
               <div style="font-size:22px;">2️⃣</div>
-              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">영상 소스 수집 ✅ NEW</div><div style="font-size:11px;color:var(--muted);">Pexels 스톡영상 + Gemini AI 이미지 자동 수집</div></div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">영상 소스 수집 ✅</div><div style="font-size:11px;color:var(--muted);">Pexels 스톡영상 + Gemini AI 이미지 자동 수집</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);opacity:.5;">
+            <div onclick="go('render',document.querySelectorAll('.nav-item')[3])" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(6,182,212,.3);">
               <div style="font-size:22px;">3️⃣</div>
-              <div><div style="font-size:13px;font-weight:700;">영상 합성 & 업로드</div><div style="font-size:11px;color:var(--muted);">GitHub Actions + FFmpeg → YouTube (예정)</div></div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">영상 자동 합성 + 다운로드 ✅ NEW</div><div style="font-size:11px;color:var(--muted);">GitHub Actions + FFmpeg → 완성 영상 다운로드</div></div>
+              <div style="color:var(--accent);">→</div>
             </div>
           </div>
         </div>
@@ -234,14 +244,80 @@ input[type=range]{accent-color:var(--accent);}
           <div id="sourceScriptInfo" style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-size:13px;color:var(--muted);">
             먼저 스크립트 생성 페이지에서 스크립트를 생성해주세요.
           </div>
-          <button class="btn btn-primary" id="collectBtn" onclick="onCollectSources()" disabled>
-            🔍 영상 소스 자동 수집
-          </button>
+          <button class="btn btn-primary" id="collectBtn" onclick="onCollectSources()" disabled>🔍 영상 소스 자동 수집</button>
           <div id="collectLoading" style="display:none;text-align:center;margin-top:20px;padding:20px;">
             <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px;" id="collectStatus">Pexels에서 스톡영상 검색 중...</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px;" id="collectStatus">소스 수집 중...</div>
           </div>
           <div id="sourcesOut" style="margin-top:20px;"></div>
+        </div>
+      </div>
+
+      <!-- 영상 생성 (렌더링) -->
+      <div class="page" id="page-render">
+        <div class="card">
+          <div class="card-title">🚀 영상 자동 합성</div>
+
+          <!-- 준비 상태 확인 -->
+          <div id="renderReadyInfo" style="margin-bottom:20px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+                <div id="ready-script-icon" style="font-size:16px;">⬜</div>
+                <div style="font-size:13px;" id="ready-script-text">스크립트 미생성</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+                <div id="ready-token-icon" style="font-size:16px;">⬜</div>
+                <div style="font-size:13px;" id="ready-token-text">GitHub 토큰 미설정</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="renderBtn" onclick="onStartRender()" disabled style="width:100%;padding:14px;font-size:15px;">
+            🎬 영상 생성 시작
+          </button>
+
+          <!-- 진행 상태 -->
+          <div id="renderProgress" style="display:none;margin-top:24px;">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+            <div style="font-size:12px;color:var(--muted);text-align:right;margin-top:6px;" id="progressText">0%</div>
+
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;" id="renderSteps">
+              <div class="render-step waiting" id="step-trigger">
+                <div class="render-step-icon">📡</div>
+                <div class="render-step-text"><div class="render-step-title">GitHub Actions 트리거</div><div class="render-step-desc">렌더링 워크플로우 실행 요청</div></div>
+              </div>
+              <div class="render-step waiting" id="step-tts">
+                <div class="render-step-icon">🎙️</div>
+                <div class="render-step-text"><div class="render-step-title">TTS 음성 생성</div><div class="render-step-desc">나레이션 음성 자동 생성</div></div>
+              </div>
+              <div class="render-step waiting" id="step-download">
+                <div class="render-step-icon">📥</div>
+                <div class="render-step-text"><div class="render-step-title">소스 다운로드</div><div class="render-step-desc">스톡영상 및 AI 이미지 수집</div></div>
+              </div>
+              <div class="render-step waiting" id="step-ffmpeg">
+                <div class="render-step-icon">🎬</div>
+                <div class="render-step-text"><div class="render-step-title">FFmpeg 합성</div><div class="render-step-desc">흑백 필터 + 자막 + 음성 합성</div></div>
+              </div>
+              <div class="render-step waiting" id="step-complete">
+                <div class="render-step-icon">✅</div>
+                <div class="render-step-text"><div class="render-step-title">완성</div><div class="render-step-desc">다운로드 준비 완료</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 완성 영상 다운로드 -->
+          <div id="renderResult" style="display:none;margin-top:20px;padding:20px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.3);border-radius:12px;">
+            <div style="font-size:15px;font-weight:700;color:var(--success);margin-bottom:8px;">🎉 영상 완성!</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:16px;" id="renderResultDesc"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-success" id="downloadBtn" onclick="onDownloadVideo()">📥 완성 영상 다운로드</button>
+              <button class="btn btn-secondary btn-sm" id="actionsLinkBtn" onclick="openActionsLink()">🔗 GitHub Actions 보기</button>
+            </div>
+          </div>
+
+          <div id="renderError" style="display:none;margin-top:20px;padding:16px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.3);border-radius:10px;">
+            <div style="font-size:13px;color:var(--danger);" id="renderErrorMsg"></div>
+          </div>
         </div>
       </div>
 
@@ -280,6 +356,11 @@ input[type=range]{accent-color:var(--accent);}
             <div class="settings-title">Pexels API</div>
             <div class="key-row"><input type="password" class="form-input" id="key-pexels" placeholder="..."><button class="btn btn-secondary btn-sm" onclick="toggleShow('key-pexels')">👁</button></div>
           </div>
+          <div class="settings-section">
+            <div class="settings-title">GitHub Personal Access Token</div>
+            <div class="key-row"><input type="password" class="form-input" id="key-github" placeholder="ghp_..."><button class="btn btn-secondary btn-sm" onclick="toggleShow('key-github')">👁</button></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">영상 생성(GitHub Actions 트리거)에 필요합니다</div>
+          </div>
           <button class="btn btn-primary" onclick="saveKeys()">💾 저장</button>
         </div>
       </div>
@@ -293,7 +374,12 @@ input[type=range]{accent-color:var(--accent);}
 <script src="js/script.js"></script>
 <script>
 
-// ===== 카테고리별 목소리 매핑 =====
+// ===== 상수 =====
+const GITHUB_OWNER = 'meanismmm';
+const GITHUB_REPO  = 'niche-shorts-automation';
+const WORKFLOW_ID  = 'render.yml';
+
+// ===== 카테고리별 목소리 =====
 const VOICE_MAP = {
   pet:        {name:'ko-KR-Wavenet-A',gender:'FEMALE',label:'여성 A (따뜻함)'},
   single:     {name:'ko-KR-Wavenet-D',gender:'MALE',  label:'남성 D (안정적)'},
@@ -303,355 +389,27 @@ const VOICE_MAP = {
   gadget:     {name:'ko-KR-Wavenet-C',gender:'MALE',  label:'남성 C (경쾌함)'},
 };
 
-// ===== 구간별 Pexels 키워드 생성 =====
-function buildPexelsKeywords(script) {
-  const isWow = script.type === 'wow';
-  const product = script.product || '';
-  const catName = script.category?.name || '';
-  return {
-    opening:  isWow ? `${product} gadget surprising` : `${catName} problem daily life`,
-    empathy:  isWow ? `${product} amazing feature` : `person frustrated daily`,
-    solution: `${product} ${catName} solution`,
-    cta:      'shopping online lifestyle',
-  };
-}
-
-// ===== Gemini 이미지 프롬프트 생성 =====
-function buildGeminiPrompts(script) {
-  const isWow = script.type === 'wow';
-  const product = script.product || '';
-  return {
-    opening: isWow
-      ? `Dramatic close-up shot of ${product}, mysterious dark background, cinematic lighting, product photography style`
-      : `Person looking frustrated or concerned in everyday situation, cinematic, dark moody tone`,
-    solution: `${product} being used in real life, warm natural lighting, lifestyle photography, clean minimal background`,
-  };
-}
-
-// ===== Pexels 영상 검색 =====
-async function fetchPexelsVideos(keyword, perPage = 3) {
-  const pexelsKey = CONFIG.get(CONFIG.KEYS.PEXELS);
-  if (!pexelsKey) return [];
-  try {
-    const res = await fetch(
-      `https://api.pexels.com/videos/search?query=${encodeURIComponent(keyword)}&per_page=${perPage}&orientation=portrait`,
-      { headers: { Authorization: pexelsKey } }
-    );
-    const data = await res.json();
-    return (data.videos || []).map(v => ({
-      id: v.id,
-      thumb: v.image,
-      url: v.video_files?.find(f => f.quality === 'sd')?.link || v.video_files?.[0]?.link,
-      duration: v.duration,
-      type: 'video',
-    }));
-  } catch { return []; }
-}
-
-// ===== Gemini 이미지 생성 =====
-async function generateGeminiImage(prompt) {
-  const geminiKey = CONFIG.get(CONFIG.KEYS.GEMINI);
-  if (!geminiKey) return null;
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${geminiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
-        })
-      }
-    );
-    const data = await res.json();
-    const imgPart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-    if (!imgPart) return null;
-    return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
-  } catch { return null; }
-}
-
-// ===== 영상 소스 수집 메인 =====
-let collectedSources = {};
-
-async function onCollectSources() {
-  if (!currentScript) { showError('먼저 스크립트를 생성해주세요'); return; }
-
-  const btn = document.getElementById('collectBtn');
-  btn.disabled = true;
-  document.getElementById('collectLoading').style.display = 'block';
-  document.getElementById('sourcesOut').innerHTML = '';
-  collectedSources = {};
-
-  const keywords = buildPexelsKeywords(currentScript);
-  const aiPrompts = buildGeminiPrompts(currentScript);
-  const isWow = currentScript.type === 'wow';
-
-  const sections = isWow
-    ? [
-        { key: 'opening',  label: '⚡ 오프닝 (0~3초)',   keyword: keywords.opening,  aiPrompt: aiPrompts.opening },
-        { key: 'proof',    label: '🔍 증명 (3~10초)',    keyword: keywords.empathy,  aiPrompt: aiPrompts.solution },
-        { key: 'usage',    label: '🎯 활용 (10~22초)',   keyword: keywords.solution, aiPrompt: null },
-        { key: 'cta',      label: '🔗 CTA (22~30초)',    keyword: keywords.cta,      aiPrompt: null },
-      ]
-    : [
-        { key: 'opening',  label: '⚡ 오프닝 (0~3초)',   keyword: keywords.opening,  aiPrompt: aiPrompts.opening },
-        { key: 'empathy',  label: '💭 공감 (3~10초)',    keyword: keywords.empathy,  aiPrompt: null },
-        { key: 'solution', label: '✅ 해결 (10~22초)',   keyword: keywords.solution, aiPrompt: aiPrompts.solution },
-        { key: 'cta',      label: '🔗 CTA (22~30초)',    keyword: keywords.cta,      aiPrompt: null },
-      ];
-
-  for (const sec of sections) {
-    document.getElementById('collectStatus').textContent = `"${sec.label}" 소스 수집 중...`;
-
-    const videos = await fetchPexelsVideos(sec.keyword, 3);
-    let aiImageUrl = null;
-
-    if (sec.aiPrompt) {
-      document.getElementById('collectStatus').textContent = `"${sec.label}" AI 이미지 생성 중...`;
-      aiImageUrl = await generateGeminiImage(sec.aiPrompt);
-    }
-
-    collectedSources[sec.key] = { videos, aiImage: aiImageUrl, selected: null };
-    renderSourceSection(sec.key, sec.label, videos, aiImageUrl);
-  }
-
-  document.getElementById('collectLoading').style.display = 'none';
-  btn.disabled = false;
-
-  // 다운로드 버튼 추가
-  const dl = document.createElement('div');
-  dl.style.cssText = 'margin-top:20px;padding:16px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.3);border-radius:10px;';
-  dl.innerHTML = `
-    <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ 수집 완료</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">각 구간에서 사용할 소스를 클릭해서 선택하세요. 선택 후 목록을 다운로드할 수 있습니다.</div>
-    <button class="btn btn-secondary btn-sm" onclick="exportSourceList()">📥 선택 목록 내보내기</button>
-  `;
-  document.getElementById('sourcesOut').appendChild(dl);
-  showSuccess('영상 소스 수집 완료!');
-}
-
-function renderSourceSection(key, label, videos, aiImage) {
-  const container = document.getElementById('sourcesOut');
-
-  const sec = document.createElement('div');
-  sec.className = 'source-section';
-  sec.innerHTML = `
-    <div class="source-section-title">
-      ${label}
-      <button class="regen-btn" onclick="regenSection('${key}')">↺ 재검색</button>
-    </div>
-    <div class="source-grid" id="grid-${key}"></div>
-  `;
-  container.appendChild(sec);
-
-  const grid = document.getElementById(`grid-${key}`);
-
-  // AI 이미지 먼저
-  if (aiImage) {
-    const card = document.createElement('div');
-    card.className = 'source-card';
-    card.id = `src-${key}-ai`;
-    card.innerHTML = `
-      <span class="source-card-type type-ai">AI</span>
-      <img src="${aiImage}" alt="AI 생성 이미지">
-      <div class="source-card-label">Gemini AI 생성</div>
-    `;
-    card.onclick = () => selectSource(key, 'ai', aiImage, card);
-    grid.appendChild(card);
-  }
-
-  // 스톡 영상
-  videos.forEach((v, i) => {
-    const card = document.createElement('div');
-    card.className = 'source-card';
-    card.id = `src-${key}-${i}`;
-    card.innerHTML = `
-      <span class="source-card-type type-video">영상</span>
-      <img src="${v.thumb}" alt="스톡영상 썸네일">
-      <div class="source-card-label">${v.duration}초 · Pexels</div>
-    `;
-    card.onclick = () => selectSource(key, i, v, card);
-    grid.appendChild(card);
-  });
-
-  if (!aiImage && videos.length === 0) {
-    grid.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">검색 결과가 없습니다. 재검색을 시도해보세요.</div>';
-  }
-}
-
-function selectSource(key, idx, data, cardEl) {
-  const grid = document.getElementById(`grid-${key}`);
-  grid.querySelectorAll('.source-card').forEach(c => c.classList.remove('selected'));
-  cardEl.classList.add('selected');
-  collectedSources[key].selected = { idx, data };
-  showSuccess(`선택 완료!`);
-}
-
-async function regenSection(key) {
-  if (!currentScript) return;
-  const keywords = buildPexelsKeywords(currentScript);
-  const aiPrompts = buildGeminiPrompts(currentScript);
-  const keyMap = { opening: keywords.opening, empathy: keywords.empathy, proof: keywords.empathy, solution: keywords.solution, usage: keywords.solution, cta: keywords.cta };
-  const aiMap  = { opening: aiPrompts.opening, solution: aiPrompts.solution, proof: aiPrompts.solution };
-
-  const grid = document.getElementById(`grid-${key}`);
-  if (grid) grid.innerHTML = '<div style="padding:16px;color:var(--muted);font-size:12px;">검색 중...</div>';
-
-  const videos = await fetchPexelsVideos(keyMap[key] || currentScript.product, 3);
-  let aiImage = null;
-  if (aiMap[key]) aiImage = await generateGeminiImage(aiMap[key]);
-
-  collectedSources[key] = { videos, aiImage, selected: null };
-  if (grid) grid.innerHTML = '';
-
-  const sec = { key, label: key };
-  if (aiImage) {
-    const card = document.createElement('div');
-    card.className = 'source-card';
-    card.innerHTML = `<span class="source-card-type type-ai">AI</span><img src="${aiImage}" alt="AI"><div class="source-card-label">Gemini AI 생성</div>`;
-    card.onclick = () => selectSource(key, 'ai', aiImage, card);
-    grid.appendChild(card);
-  }
-  videos.forEach((v, i) => {
-    const card = document.createElement('div');
-    card.className = 'source-card';
-    card.innerHTML = `<span class="source-card-type type-video">영상</span><img src="${v.thumb}" alt="썸네일"><div class="source-card-label">${v.duration}초 · Pexels</div>`;
-    card.onclick = () => selectSource(key, i, v, card);
-    grid.appendChild(card);
-  });
-  showSuccess('재검색 완료!');
-}
-
-function exportSourceList() {
-  const lines = ['구간,유형,URL/데이터'];
-  for (const [key, val] of Object.entries(collectedSources)) {
-    if (val.selected) {
-      const type = val.selected.idx === 'ai' ? 'AI이미지' : 'Pexels영상';
-      const url  = val.selected.idx === 'ai' ? '(AI생성이미지)' : (val.selected.data.url || '');
-      lines.push(`${key},${type},${url}`);
-    }
-  }
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = '영상소스목록.csv'; a.click();
-  showSuccess('내보내기 완료!');
-}
-
 // ===== 단위 변환 =====
 function convertUnits(text) {
   return text
     .replace(/(\d+\.?\d*)\s*L\b/g,'$1리터').replace(/(\d+\.?\d*)\s*ml\b/gi,'$1밀리리터')
     .replace(/(\d+\.?\d*)\s*kg\b/g,'$1킬로그램').replace(/(\d+\.?\d*)\s*g\b/g,'$1그램')
-    .replace(/(\d+\.?\d*)\s*km\b/g,'$1킬로미터').replace(/(\d+\.?\d*)\s*cm\b/g,'$1센티미터')
-    .replace(/(\d+\.?\d*)\s*mm\b/g,'$1밀리미터').replace(/(\d+\.?\d*)\s*W\b/g,'$1와트')
-    .replace(/(\d+\.?\d*)\s*mAh\b/g,'$1밀리암페어').replace(/(\d+\.?\d*)\s*GB\b/g,'$1기가바이트')
-    .replace(/(\d+\.?\d*)\s*MB\b/g,'$1메가바이트').replace(/(\d+\.?\d*)\s*℃/g,'$1도')
-    .replace(/(\d+\.?\d*)\s*%/g,'$1퍼센트');
-}
-
-// ===== 목소리 선택 UI =====
-function renderVoiceSelector(categoryKey) {
-  const voice = VOICE_MAP[categoryKey] || VOICE_MAP['gadget'];
-  const existing = document.getElementById('voiceSelector');
-  if (existing) existing.remove();
-  const existing2 = document.getElementById('audioPlayer');
-  if (existing2) existing2.remove();
-
-  const div = document.createElement('div');
-  div.id = 'voiceSelector';
-  div.style.cssText = 'margin-top:16px;padding:16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);';
-  div.innerHTML = `
-    <div style="font-size:11px;color:var(--accent2);font-family:'Space Mono',monospace;margin-bottom:10px;">🎙️ 나레이션 목소리 설정</div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <select id="voiceSelect" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;">
-        <option value="ko-KR-Wavenet-A|FEMALE" ${voice.name==='ko-KR-Wavenet-A'?'selected':''}>여성 A — 따뜻하고 부드러움 (반려동물/수면)</option>
-        <option value="ko-KR-Wavenet-B|FEMALE" ${voice.name==='ko-KR-Wavenet-B'?'selected':''}>여성 B — 친근하고 활기참 (주방/생활)</option>
-        <option value="ko-KR-Wavenet-C|MALE"   ${voice.name==='ko-KR-Wavenet-C'?'selected':''}>남성 C — 밝고 경쾌함 (신박한 아이템)</option>
-        <option value="ko-KR-Wavenet-D|MALE"   ${voice.name==='ko-KR-Wavenet-D'?'selected':''}>남성 D — 안정적이고 전문적 (홈오피스/1인가구)</option>
-      </select>
-      <span style="font-size:11px;color:var(--accent3);white-space:nowrap;">✦ 자동: ${voice.label}</span>
-    </div>
-    <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;">
-      <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">말하기 속도</div>
-        <input type="range" id="voiceSpeed" min="0.8" max="1.4" step="0.05" value="1.15" style="width:100%;" oninput="document.getElementById('voiceSpeedVal').textContent=parseFloat(this.value).toFixed(2)"></div>
-      <div style="font-size:13px;font-family:'Space Mono',monospace;color:var(--accent);min-width:36px;" id="voiceSpeedVal">1.15</div>
-      <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">음높이</div>
-        <input type="range" id="voicePitch" min="-2" max="4" step="0.5" value="1.5" style="width:100%;" oninput="document.getElementById('voicePitchVal').textContent=parseFloat(this.value).toFixed(1)"></div>
-      <div style="font-size:13px;font-family:'Space Mono',monospace;color:var(--accent);min-width:32px;" id="voicePitchVal">1.5</div>
-    </div>
-    <button id="ttsBtn" onclick="onGenerateTTS()" style="width:100%;padding:10px;background:rgba(6,182,212,.15);color:var(--accent2);border:1px solid rgba(6,182,212,.3);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;">
-      🎙️ 음성 생성
-    </button>
-  `;
-  document.getElementById('scriptOut').appendChild(div);
-}
-
-// ===== TTS =====
-async function generateTTS(script) {
-  const googleKey = CONFIG.get(CONFIG.KEYS.GOOGLE_CLOUD);
-  if (!googleKey) { showError('Google Cloud API 키를 설정해주세요'); return null; }
-  const voiceSelect = document.getElementById('voiceSelect');
-  const [voiceName, voiceGender] = voiceSelect ? voiceSelect.value.split('|') : [VOICE_MAP[selectedCat||'gadget'].name, VOICE_MAP[selectedCat||'gadget'].gender];
-  const speed = parseFloat(document.getElementById('voiceSpeed')?.value || '1.15');
-  const pitch = parseFloat(document.getElementById('voicePitch')?.value || '1.5');
-  const isWow = script.type === 'wow';
-  const raw = isWow
-    ? `${script.opening} ${script.proof} ${script.usage} ${script.cta}`
-    : `${script.opening} ${script.empathy} ${script.solution} ${script.cta}`;
-  const narration = convertUnits(raw);
-  try {
-    const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleKey}`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ input:{text:narration}, voice:{languageCode:'ko-KR',name:voiceName,ssmlGender:voiceGender}, audioConfig:{audioEncoding:'MP3',speakingRate:speed,pitch:pitch} })
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    const blob = base64ToBlob(data.audioContent, 'audio/mp3');
-    return { url: URL.createObjectURL(blob), blob, narration };
-  } catch(err) { showError('TTS 생성 실패: '+err.message); return null; }
-}
-
-function base64ToBlob(base64, mimeType) {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-  return new Blob([bytes],{type:mimeType});
-}
-function downloadAudio(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
-}
-async function onGenerateTTS() {
-  if (!currentScript) return;
-  const btn = document.getElementById('ttsBtn');
-  btn.disabled=true; btn.textContent='🎙️ 생성중...';
-  const result = await generateTTS(currentScript);
-  btn.disabled=false; btn.textContent='🎙️ 음성 생성';
-  if (!result) return;
-  const existing = document.getElementById('audioPlayer');
-  if (existing) existing.remove();
-  const div = document.createElement('div');
-  div.id='audioPlayer';
-  div.style.cssText='margin-top:12px;padding:16px;background:var(--surface);border-radius:10px;border:1px solid rgba(16,185,129,.3);';
-  div.innerHTML=`
-    <div style="font-size:11px;color:var(--success);font-family:'Space Mono',monospace;margin-bottom:8px;">✅ 생성된 나레이션</div>
-    <audio controls style="width:100%;margin-bottom:10px;"><source src="${result.url}" type="audio/mp3"></audio>
-    <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:10px;">${result.narration}</div>
-    <button class="btn btn-secondary btn-sm" onclick="downloadAudio(window._audioBlob,'나레이션_${currentScript.product}.mp3')">📥 MP3 다운로드</button>
-  `;
-  document.getElementById('voiceSelector').after(div);
-  window._audioBlob = result.blob;
-  showSuccess('음성 생성 완료!');
+    .replace(/(\d+\.?\d*)\s*cm\b/g,'$1센티미터').replace(/(\d+\.?\d*)\s*mm\b/g,'$1밀리미터')
+    .replace(/(\d+\.?\d*)\s*W\b/g,'$1와트').replace(/(\d+\.?\d*)\s*GB\b/g,'$1기가바이트')
+    .replace(/(\d+\.?\d*)\s*℃/g,'$1도').replace(/(\d+\.?\d*)\s*%/g,'$1퍼센트');
 }
 
 // ===== 초기화 =====
 let selectedCat = null;
 let currentScript = null;
+let collectedSources = {};
+let currentRunId = null;
+let pollTimer = null;
 
 window.onload = () => { renderCatGrid(); loadKeys(); updateStatus(); updateStats(); renderHistory(); };
 
-const titles = {dashboard:'대시보드',generate:'✍️ 스크립트 생성',sources:'🎬 영상 소스 수집',history:'📁 히스토리',settings:'⚙️ 설정'};
+// ===== 네비게이션 =====
+const titles = {dashboard:'대시보드',generate:'✍️ 스크립트 생성',sources:'🎬 영상 소스 수집',render:'🚀 영상 생성',history:'📁 히스토리',settings:'⚙️ 설정'};
 function go(page, el) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -661,22 +419,10 @@ function go(page, el) {
   if (page==='history') renderHistory();
   if (page==='dashboard') updateStats();
   if (page==='sources') updateSourcePageInfo();
+  if (page==='render') updateRenderPageInfo();
 }
 
-function updateSourcePageInfo() {
-  const info = document.getElementById('sourceScriptInfo');
-  const btn  = document.getElementById('collectBtn');
-  if (currentScript) {
-    info.innerHTML = `<span style="color:var(--text);font-weight:700;">${currentScript.category?.emoji} ${currentScript.product}</span> <span style="color:var(--muted);">— ${currentScript.type==='wow'?'WOW형':'PAIN형'} 스크립트 준비됨</span>`;
-    info.style.borderColor = 'rgba(16,185,129,.4)';
-    btn.disabled = false;
-  } else {
-    info.textContent = '먼저 스크립트 생성 페이지에서 스크립트를 생성해주세요.';
-    info.style.borderColor = 'var(--border)';
-    btn.disabled = true;
-  }
-}
-
+// ===== 카테고리 =====
 function renderCatGrid() {
   document.getElementById('catGrid').innerHTML = Object.entries(CATEGORIES).map(([key,cat])=>`
     <div class="cat-card" id="cat-${key}" onclick="selectCat('${key}')">
@@ -691,6 +437,7 @@ function selectCat(key) {
   selectedCat = key;
 }
 
+// ===== 스크립트 생성 =====
 async function onGenerate() {
   const product = document.getElementById('inp-product').value.trim();
   const target  = document.getElementById('inp-target').value.trim();
@@ -710,7 +457,7 @@ async function onGenerate() {
   renderScript(script);
   saveToHistory(script);
   updateStats();
-  showSuccess('스크립트 생성 완료! 영상 소스 수집으로 이동하세요.');
+  showSuccess('스크립트 생성 완료!');
 }
 
 function renderScript(s) {
@@ -735,21 +482,12 @@ function renderScript(s) {
   }
   html+=sec('🔗 CTA (22~30초)',s.cta,'빠른 컷 · 1.0배속');
   html+=`
-      <div class="script-section">
-        <div class="script-label">🏷️ 해시태그</div>
-        <div class="tag-wrap">${(s.hashtags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div>
-      </div>
-      <div class="script-section">
-        <div class="script-label">📌 유튜브 제목</div>
-        <div class="script-text" style="font-weight:700;">${s.youtube_title}</div>
-      </div>
-      <div class="script-section">
-        <div class="script-label">📝 설명란</div>
-        <div class="script-text" style="font-size:12px;color:var(--muted);">${s.description}</div>
-      </div>
+      <div class="script-section"><div class="script-label">🏷️ 해시태그</div><div class="tag-wrap">${(s.hashtags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div></div>
+      <div class="script-section"><div class="script-label">📌 유튜브 제목</div><div class="script-text" style="font-weight:700;">${s.youtube_title}</div></div>
+      <div class="script-section"><div class="script-label">📝 설명란</div><div class="script-text" style="font-size:12px;color:var(--muted);">${s.description}</div></div>
     </div>
     <div style="margin-top:12px;padding:12px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);border-radius:8px;font-size:12px;color:var(--accent2);">
-      💡 스크립트 완성 후 → <strong style="cursor:pointer;text-decoration:underline;" onclick="go('sources',document.querySelectorAll('.nav-item')[2])">🎬 영상 소스 수집</strong>으로 이동하세요
+      💡 완료 후 → <strong style="cursor:pointer;text-decoration:underline;" onclick="go('sources',document.querySelectorAll('.nav-item')[2])">🎬 영상 소스 수집</strong>으로 이동하세요
     </div>
   `;
   document.getElementById('scriptOut').innerHTML=html;
@@ -761,52 +499,490 @@ function sec(label,text,timing){
   return `<div class="script-section"><div class="script-label">${label}</div>${timing?`<div style="font-size:10px;color:var(--accent3);font-family:'Space Mono',monospace;margin-bottom:4px;">${timing}</div>`:''}<div class="script-text">${text||''}</div></div>`;
 }
 
+// ===== 소스 수집 =====
+function updateSourcePageInfo() {
+  const info = document.getElementById('sourceScriptInfo');
+  const btn  = document.getElementById('collectBtn');
+  if (currentScript) {
+    info.innerHTML = `<span style="color:var(--text);font-weight:700;">${currentScript.category?.emoji} ${currentScript.product}</span> <span style="color:var(--muted);">— ${currentScript.type==='wow'?'WOW형':'PAIN형'} 스크립트 준비됨</span>`;
+    info.style.borderColor='rgba(16,185,129,.4)';
+    btn.disabled=false;
+  } else {
+    info.textContent='먼저 스크립트 생성 페이지에서 스크립트를 생성해주세요.';
+    info.style.borderColor='var(--border)';
+    btn.disabled=true;
+  }
+}
+
+function buildPexelsKeywords(script) {
+  const product = script.product||'';
+  const catName = script.category?.name||'';
+  return {
+    opening:  `${catName} problem daily life`,
+    empathy:  `person frustrated daily life`,
+    proof:    `${product} amazing feature`,
+    solution: `${product} lifestyle solution`,
+    usage:    `${product} using lifestyle`,
+    cta:      'shopping lifestyle online',
+  };
+}
+
+function buildGeminiPrompts(script) {
+  const product = script.product||'';
+  return {
+    opening:  `Dramatic cinematic scene showing frustration or problem related to ${product}, dark moody atmosphere, no text`,
+    solution: `${product} being used happily in real life, warm natural lighting, lifestyle photography, clean background, no text`,
+  };
+}
+
+async function fetchPexelsVideos(keyword, perPage=3) {
+  const key = CONFIG.get(CONFIG.KEYS.PEXELS);
+  if (!key) return [];
+  try {
+    const res = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(keyword)}&per_page=${perPage}&orientation=portrait`, {headers:{Authorization:key}});
+    const data = await res.json();
+    return (data.videos||[]).map(v=>({
+      id:v.id, thumb:v.image,
+      url:v.video_files?.find(f=>f.quality==='sd')?.link||v.video_files?.[0]?.link,
+      duration:v.duration, type:'video'
+    }));
+  } catch { return []; }
+}
+
+async function generateGeminiImage(prompt) {
+  const key = CONFIG.get(CONFIG.KEYS.GEMINI);
+  if (!key) return null;
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${key}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['TEXT','IMAGE']}})
+    });
+    const data = await res.json();
+    const imgPart = data.candidates?.[0]?.content?.parts?.find(p=>p.inlineData);
+    if (!imgPart) return null;
+    return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+  } catch { return null; }
+}
+
+async function onCollectSources() {
+  if (!currentScript) { showError('먼저 스크립트를 생성해주세요'); return; }
+  const btn = document.getElementById('collectBtn');
+  btn.disabled=true;
+  document.getElementById('collectLoading').style.display='block';
+  document.getElementById('sourcesOut').innerHTML='';
+  collectedSources={};
+
+  const keywords = buildPexelsKeywords(currentScript);
+  const aiPrompts = buildGeminiPrompts(currentScript);
+  const isWow = currentScript.type==='wow';
+  const sections = isWow
+    ? [{key:'opening',label:'⚡ 오프닝 (0~3초)',kw:keywords.opening,ai:aiPrompts.opening},
+       {key:'proof',  label:'🔍 증명 (3~10초)', kw:keywords.proof,  ai:aiPrompts.solution},
+       {key:'usage',  label:'🎯 활용 (10~22초)',kw:keywords.usage,  ai:null},
+       {key:'cta',    label:'🔗 CTA (22~30초)', kw:keywords.cta,   ai:null}]
+    : [{key:'opening', label:'⚡ 오프닝 (0~3초)',  kw:keywords.opening, ai:aiPrompts.opening},
+       {key:'empathy', label:'💭 공감 (3~10초)',   kw:keywords.empathy, ai:null},
+       {key:'solution',label:'✅ 해결 (10~22초)',  kw:keywords.solution,ai:aiPrompts.solution},
+       {key:'cta',     label:'🔗 CTA (22~30초)',   kw:keywords.cta,    ai:null}];
+
+  for (const s of sections) {
+    document.getElementById('collectStatus').textContent=`"${s.label}" 소스 수집 중...`;
+    const videos = await fetchPexelsVideos(s.kw, 3);
+    let aiImg = null;
+    if (s.ai) { document.getElementById('collectStatus').textContent=`"${s.label}" AI 이미지 생성 중...`; aiImg = await generateGeminiImage(s.ai); }
+    collectedSources[s.key]={videos,aiImage:aiImg,selected:null};
+    renderSourceSection(s.key,s.label,videos,aiImg);
+  }
+
+  document.getElementById('collectLoading').style.display='none';
+  btn.disabled=false;
+
+  const dl=document.createElement('div');
+  dl.style.cssText='margin-top:20px;padding:16px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.3);border-radius:10px;';
+  dl.innerHTML=`
+    <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ 수집 완료</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">각 구간에서 사용할 소스를 클릭해서 선택 후 영상 생성으로 이동하세요.</div>
+    <button class="btn btn-primary btn-sm" onclick="go('render',document.querySelectorAll('.nav-item')[3])">🚀 영상 생성으로 이동 →</button>
+  `;
+  document.getElementById('sourcesOut').appendChild(dl);
+  showSuccess('영상 소스 수집 완료!');
+}
+
+function renderSourceSection(key,label,videos,aiImage) {
+  const container=document.getElementById('sourcesOut');
+  const sec=document.createElement('div');
+  sec.className='source-section';
+  sec.innerHTML=`<div class="source-section-title">${label}<button class="regen-btn" onclick="regenSection('${key}')">↺ 재검색</button></div><div class="source-grid" id="grid-${key}"></div>`;
+  container.appendChild(sec);
+  const grid=document.getElementById(`grid-${key}`);
+  if (aiImage) {
+    const card=document.createElement('div'); card.className='source-card'; card.id=`src-${key}-ai`;
+    card.innerHTML=`<span class="source-card-type type-ai">AI</span><img src="${aiImage}" alt="AI"><div class="source-card-label">Gemini AI 생성</div>`;
+    card.onclick=()=>selectSource(key,'ai',aiImage,card); grid.appendChild(card);
+  }
+  videos.forEach((v,i)=>{
+    const card=document.createElement('div'); card.className='source-card'; card.id=`src-${key}-${i}`;
+    card.innerHTML=`<span class="source-card-type type-video">영상</span><img src="${v.thumb}" alt="썸네일"><div class="source-card-label">${v.duration}초 · Pexels</div>`;
+    card.onclick=()=>selectSource(key,i,v,card); grid.appendChild(card);
+  });
+  if (!aiImage&&videos.length===0) grid.innerHTML='<div style="padding:20px;color:var(--muted);font-size:13px;">검색 결과 없음. 재검색을 시도해보세요.</div>';
+}
+
+function selectSource(key,idx,data,cardEl) {
+  document.getElementById(`grid-${key}`).querySelectorAll('.source-card').forEach(c=>c.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  collectedSources[key].selected={idx,data};
+}
+
+async function regenSection(key) {
+  if (!currentScript) return;
+  const kws=buildPexelsKeywords(currentScript);
+  const ais=buildGeminiPrompts(currentScript);
+  const kwMap={opening:kws.opening,empathy:kws.empathy,proof:kws.proof,solution:kws.solution,usage:kws.usage,cta:kws.cta};
+  const aiMap={opening:ais.opening,solution:ais.solution,proof:ais.solution};
+  const grid=document.getElementById(`grid-${key}`);
+  if (grid) grid.innerHTML='<div style="padding:16px;color:var(--muted);font-size:12px;">검색 중...</div>';
+  const videos=await fetchPexelsVideos(kwMap[key]||currentScript.product,3);
+  let aiImage=null;
+  if (aiMap[key]) aiImage=await generateGeminiImage(aiMap[key]);
+  collectedSources[key]={videos,aiImage,selected:null};
+  if (grid) grid.innerHTML='';
+  if (aiImage){const card=document.createElement('div');card.className='source-card';card.innerHTML=`<span class="source-card-type type-ai">AI</span><img src="${aiImage}" alt="AI"><div class="source-card-label">Gemini AI 생성</div>`;card.onclick=()=>selectSource(key,'ai',aiImage,card);grid.appendChild(card);}
+  videos.forEach((v,i)=>{const card=document.createElement('div');card.className='source-card';card.innerHTML=`<span class="source-card-type type-video">영상</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration}초 · Pexels</div>`;card.onclick=()=>selectSource(key,i,v,card);grid.appendChild(card);});
+  showSuccess('재검색 완료!');
+}
+
+// ===== 렌더링 페이지 =====
+function updateRenderPageInfo() {
+  const hasScript = !!currentScript;
+  const hasToken  = !!CONFIG.get('github_token');
+
+  document.getElementById('ready-script-icon').textContent = hasScript ? '✅' : '❌';
+  document.getElementById('ready-script-text').textContent = hasScript ? `스크립트 준비됨 — ${currentScript.category?.emoji} ${currentScript.product}` : '스크립트 미생성 (스크립트 생성 페이지로 이동)';
+  document.getElementById('ready-token-icon').textContent = hasToken ? '✅' : '❌';
+  document.getElementById('ready-token-text').textContent = hasToken ? 'GitHub 토큰 설정됨' : 'GitHub 토큰 미설정 (설정 페이지에서 입력)';
+
+  document.getElementById('renderBtn').disabled = !(hasScript && hasToken);
+}
+
+// ===== GitHub Actions 트리거 =====
+async function onStartRender() {
+  const token = CONFIG.get('github_token');
+  if (!token) { showError('GitHub 토큰을 설정해주세요'); return; }
+  if (!currentScript) { showError('스크립트를 먼저 생성해주세요'); return; }
+
+  // 렌더링 UI 초기화
+  document.getElementById('renderProgress').style.display='block';
+  document.getElementById('renderResult').style.display='none';
+  document.getElementById('renderError').style.display='none';
+  document.getElementById('renderBtn').disabled=true;
+  setProgress(0);
+  setStep('trigger','active');
+
+  try {
+    // GitHub Actions 트리거
+    const scriptData = JSON.stringify(currentScript);
+    const sourcesData = JSON.stringify(collectedSources);
+
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ref: 'main',
+          inputs: {
+            script_data:  scriptData,
+            sources_data: sourcesData,
+          }
+        })
+      }
+    );
+
+    if (res.status !== 204) {
+      const err = await res.json();
+      throw new Error(err.message || '트리거 실패');
+    }
+
+    setStep('trigger','done');
+    setProgress(15);
+    showSuccess('GitHub Actions 시작됨! 렌더링 중...');
+
+    // 2초 후 폴링 시작 (워크플로우가 등록될 시간 필요)
+    setTimeout(() => pollRunStatus(token), 3000);
+
+  } catch (err) {
+    showRenderError(`트리거 실패: ${err.message}`);
+    document.getElementById('renderBtn').disabled=false;
+  }
+}
+
+async function pollRunStatus(token) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs?per_page=5`,
+      { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+    );
+    const data = await res.json();
+    const run = data.workflow_runs?.find(r => r.name === '영상 자동 합성' && (r.status === 'queued' || r.status === 'in_progress'));
+
+    if (run) {
+      currentRunId = run.id;
+      pollTimer = setInterval(() => checkRunComplete(token, run.id), 8000);
+      updateStepsFromRun(run);
+    } else {
+      // 아직 시작 안 됨, 재시도
+      setTimeout(() => pollRunStatus(token), 3000);
+    }
+  } catch (err) {
+    setTimeout(() => pollRunStatus(token), 5000);
+  }
+}
+
+async function checkRunComplete(token, runId) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}`,
+      { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+    );
+    const run = await res.json();
+    updateStepsFromRun(run);
+
+    if (run.status === 'completed') {
+      clearInterval(pollTimer);
+
+      if (run.conclusion === 'success') {
+        setStep('complete','done');
+        setProgress(100);
+        await showDownloadLink(token, runId);
+      } else {
+        showRenderError(`렌더링 실패: ${run.conclusion}. GitHub Actions 로그를 확인해주세요.`);
+        document.getElementById('actionsLinkBtn').style.display='inline-flex';
+        document.getElementById('renderError').style.display='block';
+        document.getElementById('renderBtn').disabled=false;
+      }
+    }
+  } catch (err) {
+    console.error('폴링 오류:', err);
+  }
+}
+
+function updateStepsFromRun(run) {
+  if (run.status === 'queued') {
+    setStep('trigger','done'); setProgress(15);
+  } else if (run.status === 'in_progress') {
+    setStep('trigger','done');
+    setStep('tts','active');    setProgress(30);
+    setTimeout(()=>{setStep('tts','done');setStep('download','active');setProgress(50);},8000);
+    setTimeout(()=>{setStep('download','done');setStep('ffmpeg','active');setProgress(70);},16000);
+    setTimeout(()=>{setStep('ffmpeg','done');setProgress(90);},28000);
+  }
+}
+
+async function showDownloadLink(token, runId) {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}/artifacts`,
+      { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+    );
+    const data = await res.json();
+    const artifact = data.artifacts?.find(a => a.name === 'completed-video');
+
+    if (artifact) {
+      window._artifactId = artifact.id;
+      window._githubToken = token;
+      document.getElementById('renderResult').style.display='block';
+      document.getElementById('renderResultDesc').textContent = `${currentScript.product} 영상이 완성됐습니다. 아래 버튼으로 다운로드하세요.`;
+      // 영상 생성 카운트 업데이트
+      let count = parseInt(localStorage.getItem('video_count')||'0');
+      localStorage.setItem('video_count', count+1);
+      updateStats();
+    } else {
+      showRenderError('아티팩트를 찾을 수 없습니다. GitHub Actions에서 직접 확인해주세요.');
+    }
+  } catch(err) {
+    showRenderError('다운로드 링크 생성 실패: ' + err.message);
+  }
+}
+
+async function onDownloadVideo() {
+  const token = window._githubToken;
+  const artifactId = window._artifactId;
+  if (!token || !artifactId) { showError('다운로드 정보가 없습니다'); return; }
+
+  // GitHub API로 아티팩트 다운로드 (zip)
+  const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/artifacts/${artifactId}/zip`;
+  const btn = document.getElementById('downloadBtn');
+  btn.disabled=true; btn.textContent='📥 다운로드 중...';
+
+  try {
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+    });
+
+    if (!res.ok) throw new Error('다운로드 실패');
+
+    const blob = await res.blob();
+    const dlUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = dlUrl;
+    a.download = `${currentScript.product}_쇼츠.zip`;
+    a.click();
+    URL.revokeObjectURL(dlUrl);
+    showSuccess('다운로드 완료! ZIP 파일 안에 final.mp4가 있습니다.');
+  } catch(err) {
+    showError('다운로드 실패: ' + err.message);
+    // 대안: 직접 Actions 페이지로 이동
+    openActionsLink();
+  } finally {
+    btn.disabled=false; btn.textContent='📥 완성 영상 다운로드';
+  }
+}
+
+function openActionsLink() {
+  window.open(`https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/actions`, '_blank');
+}
+
+// ===== 진행 상태 UI =====
+function setProgress(pct) {
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressText').textContent = pct+'%';
+}
+
+function setStep(stepKey, state) {
+  const el = document.getElementById('step-'+stepKey);
+  if (!el) return;
+  el.className = 'render-step ' + state;
+  if (state==='active') {
+    el.querySelector('.render-step-icon').textContent = '⏳';
+  } else if (state==='done') {
+    el.querySelector('.render-step-icon').textContent = '✅';
+  }
+}
+
+function showRenderError(msg) {
+  document.getElementById('renderError').style.display='block';
+  document.getElementById('renderErrorMsg').textContent = '❌ ' + msg;
+  setProgress(0);
+}
+
+// ===== TTS =====
+function renderVoiceSelector(categoryKey) {
+  const voice = VOICE_MAP[categoryKey]||VOICE_MAP['gadget'];
+  ['voiceSelector','audioPlayer'].forEach(id=>{const el=document.getElementById(id);if(el)el.remove();});
+  const div=document.createElement('div');
+  div.id='voiceSelector';
+  div.style.cssText='margin-top:16px;padding:16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);';
+  div.innerHTML=`
+    <div style="font-size:11px;color:var(--accent2);font-family:'Space Mono',monospace;margin-bottom:10px;">🎙️ 나레이션 목소리 설정</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <select id="voiceSelect" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;">
+        <option value="ko-KR-Wavenet-A|FEMALE" ${voice.name==='ko-KR-Wavenet-A'?'selected':''}>여성 A — 따뜻하고 부드러움</option>
+        <option value="ko-KR-Wavenet-B|FEMALE" ${voice.name==='ko-KR-Wavenet-B'?'selected':''}>여성 B — 친근하고 활기참</option>
+        <option value="ko-KR-Wavenet-C|MALE"   ${voice.name==='ko-KR-Wavenet-C'?'selected':''}>남성 C — 밝고 경쾌함</option>
+        <option value="ko-KR-Wavenet-D|MALE"   ${voice.name==='ko-KR-Wavenet-D'?'selected':''}>남성 D — 안정적이고 전문적</option>
+      </select>
+      <span style="font-size:11px;color:var(--accent3);">✦ 자동: ${voice.label}</span>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;">
+      <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">말하기 속도</div>
+        <input type="range" id="voiceSpeed" min="0.8" max="1.4" step="0.05" value="1.15" style="width:100%;" oninput="document.getElementById('voiceSpeedVal').textContent=parseFloat(this.value).toFixed(2)"></div>
+      <div style="font-size:13px;font-family:'Space Mono',monospace;color:var(--accent);min-width:36px;" id="voiceSpeedVal">1.15</div>
+      <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">음높이</div>
+        <input type="range" id="voicePitch" min="-2" max="4" step="0.5" value="1.5" style="width:100%;" oninput="document.getElementById('voicePitchVal').textContent=parseFloat(this.value).toFixed(1)"></div>
+      <div style="font-size:13px;font-family:'Space Mono',monospace;color:var(--accent);min-width:32px;" id="voicePitchVal">1.5</div>
+    </div>
+    <button id="ttsBtn" onclick="onGenerateTTS()" style="width:100%;padding:10px;background:rgba(6,182,212,.15);color:var(--accent2);border:1px solid rgba(6,182,212,.3);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;">
+      🎙️ 음성 미리듣기
+    </button>
+  `;
+  document.getElementById('scriptOut').appendChild(div);
+}
+
+async function generateTTS(script) {
+  const googleKey=CONFIG.get(CONFIG.KEYS.GOOGLE_CLOUD);
+  if (!googleKey){showError('Google Cloud API 키를 설정해주세요');return null;}
+  const voiceSelect=document.getElementById('voiceSelect');
+  const [voiceName,voiceGender]=voiceSelect?voiceSelect.value.split('|'):[VOICE_MAP[selectedCat||'gadget'].name,VOICE_MAP[selectedCat||'gadget'].gender];
+  const speed=parseFloat(document.getElementById('voiceSpeed')?.value||'1.15');
+  const pitch=parseFloat(document.getElementById('voicePitch')?.value||'1.5');
+  const isWow=script.type==='wow';
+  const raw=isWow?`${script.opening} ${script.proof} ${script.usage} ${script.cta}`:`${script.opening} ${script.empathy} ${script.solution} ${script.cta}`;
+  const narration=convertUnits(raw);
+  try {
+    const response=await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleKey}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({input:{text:narration},voice:{languageCode:'ko-KR',name:voiceName,ssmlGender:voiceGender},audioConfig:{audioEncoding:'MP3',speakingRate:speed,pitch:pitch}})
+    });
+    const data=await response.json();
+    if (data.error) throw new Error(data.error.message);
+    const blob=base64ToBlob(data.audioContent,'audio/mp3');
+    return {url:URL.createObjectURL(blob),blob,narration};
+  } catch(err){showError('TTS 생성 실패: '+err.message);return null;}
+}
+
+function base64ToBlob(base64,mimeType){const binary=atob(base64);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type:mimeType});}
+function downloadAudio(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+
+async function onGenerateTTS(){
+  if (!currentScript) return;
+  const btn=document.getElementById('ttsBtn');
+  btn.disabled=true;btn.textContent='🎙️ 생성중...';
+  const result=await generateTTS(currentScript);
+  btn.disabled=false;btn.textContent='🎙️ 음성 미리듣기';
+  if (!result) return;
+  const existing=document.getElementById('audioPlayer');if(existing)existing.remove();
+  const div=document.createElement('div');div.id='audioPlayer';
+  div.style.cssText='margin-top:12px;padding:16px;background:var(--surface);border-radius:10px;border:1px solid rgba(16,185,129,.3);';
+  div.innerHTML=`<div style="font-size:11px;color:var(--success);font-family:'Space Mono',monospace;margin-bottom:8px;">✅ 나레이션 미리듣기</div><audio controls style="width:100%;margin-bottom:10px;"><source src="${result.url}" type="audio/mp3"></audio><button class="btn btn-secondary btn-sm" onclick="downloadAudio(window._audioBlob,'나레이션_${currentScript.product}.mp3')">📥 MP3 다운로드</button>`;
+  document.getElementById('voiceSelector').after(div);
+  window._audioBlob=result.blob;
+  showSuccess('음성 생성 완료!');
+}
+
+// ===== 복사/저장 =====
 function onCopy(){
   if (!currentScript) return;
-  const s=currentScript; const isWow=s.type==='wow';
+  const s=currentScript;const isWow=s.type==='wow';
   copyToClipboard([`[제목] ${s.youtube_title}`,`[오프닝] ${s.opening}`,isWow?`[증명] ${s.proof}`:`[공감] ${s.empathy}`,isWow?`[활용] ${s.usage}`:`[해결] ${s.solution}`,`[CTA] ${s.cta}`,`[해시태그] ${(s.hashtags||[]).map(t=>'#'+t).join(' ')}`,``,`[설명란]`,s.description].join('\n'));
 }
 function onSave(){showSuccess('히스토리에 저장됐습니다');}
 
+// ===== 히스토리 =====
 function renderHistory(){
-  const history=loadHistory();
-  const tbody=document.getElementById('historyBody');
+  const history=loadHistory();const tbody=document.getElementById('historyBody');
   if (!history.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">아직 생성된 스크립트가 없습니다</div></div></td></tr>';return;}
-  tbody.innerHTML=history.map((s,i)=>`
-    <tr>
-      <td style="font-weight:600;">${s.product}</td>
-      <td>${s.category?.emoji||''} ${s.category?.name||''}</td>
-      <td><span class="badge ${s.type==='wow'?'badge-wow':'badge-pain'}">${s.type==='wow'?'WOW':'PAIN'}</span></td>
-      <td style="font-family:'Space Mono',monospace;font-size:11px;">${new Date(s.createdAt).toLocaleDateString('ko-KR')}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="loadScript(${i})">불러오기</button></td>
-    </tr>
-  `).join('');
+  tbody.innerHTML=history.map((s,i)=>`<tr><td style="font-weight:600;">${s.product}</td><td>${s.category?.emoji||''} ${s.category?.name||''}</td><td><span class="badge ${s.type==='wow'?'badge-wow':'badge-pain'}">${s.type==='wow'?'WOW':'PAIN'}</span></td><td style="font-family:'Space Mono',monospace;font-size:11px;">${new Date(s.createdAt).toLocaleDateString('ko-KR')}</td><td><button class="btn btn-secondary btn-sm" onclick="loadScript(${i})">불러오기</button></td></tr>`).join('');
 }
 function loadScript(i){
-  const history=loadHistory();
-  currentScript=history[i];
+  const history=loadHistory();currentScript=history[i];
   selectedCat=Object.keys(CATEGORIES).find(k=>CATEGORIES[k].name===history[i].category?.name);
-  renderScript(currentScript);
-  go('generate',document.querySelectorAll('.nav-item')[1]);
+  renderScript(currentScript);go('generate',document.querySelectorAll('.nav-item')[1]);
 }
 function clearHistory(){
   if (!confirm('히스토리를 모두 삭제할까요?')) return;
-  localStorage.removeItem('script_history');
-  renderHistory(); updateStats(); showSuccess('삭제됐습니다');
+  localStorage.removeItem('script_history');renderHistory();updateStats();showSuccess('삭제됐습니다');
 }
 
+// ===== 설정 =====
 function loadKeys(){
-  document.getElementById('key-claude').value=CONFIG.get(CONFIG.KEYS.CLAUDE)||'';
-  document.getElementById('key-gemini').value=CONFIG.get(CONFIG.KEYS.GEMINI)||'';
-  document.getElementById('key-gcloud').value=CONFIG.get(CONFIG.KEYS.GOOGLE_CLOUD)||'';
-  document.getElementById('key-pexels').value=CONFIG.get(CONFIG.KEYS.PEXELS)||'';
+  document.getElementById('key-claude').value =CONFIG.get(CONFIG.KEYS.CLAUDE)||'';
+  document.getElementById('key-gemini').value =CONFIG.get(CONFIG.KEYS.GEMINI)||'';
+  document.getElementById('key-gcloud').value =CONFIG.get(CONFIG.KEYS.GOOGLE_CLOUD)||'';
+  document.getElementById('key-pexels').value =CONFIG.get(CONFIG.KEYS.PEXELS)||'';
+  document.getElementById('key-github').value =CONFIG.get('github_token')||'';
 }
 function saveKeys(){
   CONFIG.set(CONFIG.KEYS.CLAUDE,      document.getElementById('key-claude').value.trim());
   CONFIG.set(CONFIG.KEYS.GEMINI,      document.getElementById('key-gemini').value.trim());
   CONFIG.set(CONFIG.KEYS.GOOGLE_CLOUD,document.getElementById('key-gcloud').value.trim());
   CONFIG.set(CONFIG.KEYS.PEXELS,      document.getElementById('key-pexels').value.trim());
-  updateStatus(); showSuccess('API 키가 저장됐습니다');
+  CONFIG.set('github_token',          document.getElementById('key-github').value.trim());
+  updateStatus();showSuccess('API 키가 저장됐습니다');
 }
 function toggleShow(id){const el=document.getElementById(id);el.type=el.type==='password'?'text':'password';}
 function updateStatus(){
@@ -819,6 +995,7 @@ function updateStats(){
   document.getElementById('s-scripts').textContent=h.length;
   document.getElementById('s-pain').textContent=h.filter(s=>s.type==='pain').length;
   document.getElementById('s-wow').textContent=h.filter(s=>s.type==='wow').length;
+  document.getElementById('s-videos').textContent=localStorage.getItem('video_count')||'0';
 }
 </script>
 </body>
