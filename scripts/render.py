@@ -19,9 +19,8 @@ Path('output').mkdir(exist_ok=True)
 Path('temp').mkdir(exist_ok=True)
 
 W, H = 1080, 1920
-FONT = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc'
 
-print("=== 니치 쇼츠 자동 렌더링 v3.0 ===")
+print("=== 니치 쇼츠 자동 렌더링 v3.1 ===")
 print(f"상품: {SCRIPT_DATA.get('product', '알 수 없음')}")
 print(f"유형: {SCRIPT_DATA.get('type', '알 수 없음')}")
 
@@ -51,16 +50,20 @@ def download_file(url, path, timeout=30):
         with open(path, 'wb') as f:
             for chunk in r.iter_content(8192):
                 f.write(chunk)
-        return Path(path).exists() and Path(path).stat().st_size > 500
+        size = Path(path).stat().st_size if Path(path).exists() else 0
+        return size > 1000
     except Exception as e:
         print(f"  다운로드 실패: {e}")
         return False
 
-def esc(text):
-    """FFmpeg drawtext 이스케이프"""
-    for ch in ["'", ':', '\\', '[', ']']:
-        text = text.replace(ch, '')
-    return text
+def get_video_duration(path):
+    """영상 길이 조회"""
+    try:
+        r = run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                 '-of', 'default=noprint_wrappers=1:nokey=1', str(path)])
+        return float(r.stdout.strip() or '0')
+    except:
+        return 0
 
 # =============================================
 # 0단계: 폰트 설치
@@ -73,17 +76,19 @@ def install_fonts():
     print("  완료")
 
 # =============================================
-# 1단계: TTS
+# 1단계: TTS (타임포인트 기반)
 # =============================================
 def generate_tts():
     print("\n[1/6] TTS 생성 중...")
     is_wow = SCRIPT_DATA.get('type') == 'wow'
     if is_wow:
-        raw_sents = [SCRIPT_DATA.get('opening',''), SCRIPT_DATA.get('proof',''), SCRIPT_DATA.get('usage',''), SCRIPT_DATA.get('cta','')]
+        raw = [SCRIPT_DATA.get('opening',''), SCRIPT_DATA.get('proof',''),
+               SCRIPT_DATA.get('usage',''), SCRIPT_DATA.get('cta','')]
     else:
-        raw_sents = [SCRIPT_DATA.get('opening',''), SCRIPT_DATA.get('empathy',''), SCRIPT_DATA.get('solution',''), SCRIPT_DATA.get('cta','')]
+        raw = [SCRIPT_DATA.get('opening',''), SCRIPT_DATA.get('empathy',''),
+               SCRIPT_DATA.get('solution',''), SCRIPT_DATA.get('cta','')]
 
-    sentences = [convert_units(s.strip()) for s in raw_sents if s.strip()]
+    sentences = [convert_units(s.strip()) for s in raw if s.strip()]
     cat_key   = SCRIPT_DATA.get('category', {}).get('key', 'gadget')
     voice_map = {
         'pet':('ko-KR-Wavenet-A','FEMALE'), 'single':('ko-KR-Wavenet-D','MALE'),
@@ -91,340 +96,424 @@ def generate_tts():
         'kitchen':('ko-KR-Wavenet-B','FEMALE'), 'gadget':('ko-KR-Wavenet-C','MALE'),
     }
     vname, vgender = voice_map.get(cat_key, ('ko-KR-Wavenet-C','MALE'))
-    ssml = '<speak>' + ''.join(f'<mark name="s{i}"/>{s}' for i,s in enumerate(sentences)) + '</speak>'
+
+    # 단어 단위 마크 삽입 (자막 싱크용)
+    word_marks = []
+    ssml_parts = ['<speak>']
+    mark_idx = 0
+    for sent_idx, sent in enumerate(sentences):
+        words = sent.split()
+        for w_idx, word in enumerate(words):
+            mark_name = f"w{mark_idx}"
+            ssml_parts.append(f'<mark name="{mark_name}"/>{word} ')
+            word_marks.append({'mark': mark_name, 'word': word, 'sent_idx': sent_idx, 'w_idx': w_idx})
+            mark_idx += 1
+    ssml_parts.append('</speak>')
+    ssml = ''.join(ssml_parts)
 
     try:
         res = requests.post(
             f'https://texttospeech.googleapis.com/v1beta1/text:synthesize?key={GCLOUD_KEY}',
-            json={'input':{'ssml':ssml},'voice':{'languageCode':'ko-KR','name':vname,'ssmlGender':vgender},
-                  'audioConfig':{'audioEncoding':'MP3','speakingRate':1.1,'pitch':1.5},
-                  'enableTimePointing':['SSML_MARK']},
+            json={
+                'input': {'ssml': ssml},
+                'voice': {'languageCode': 'ko-KR', 'name': vname, 'ssmlGender': vgender},
+                'audioConfig': {'audioEncoding': 'MP3', 'speakingRate': 1.1, 'pitch': 1.5},
+                'enableTimePointing': ['SSML_MARK']
+            },
             timeout=30
         )
         data = res.json()
         if 'audioContent' not in data:
             raise Exception(str(data))
-        with open('temp/audio.mp3','wb') as f:
+
+        with open('temp/audio.mp3', 'wb') as f:
             f.write(base64.b64decode(data['audioContent']))
 
-        timepoints = {}
-        for tp in data.get('timepoints',[]):
-            m = tp.get('markName','')
-            if m.startswith('s'):
-                timepoints[int(m[1:])] = tp.get('timeSeconds',0)
+        # 타임포인트 매핑
+        tp_map = {}
+        for tp in data.get('timepoints', []):
+            tp_map[tp['markName']] = tp['timeSeconds']
 
-        dur = float(run(['ffprobe','-v','error','-show_entries','format=duration',
-                         '-of','default=noprint_wrappers=1:nokey=1','temp/audio.mp3']).stdout.strip() or '28')
-        print(f"  TTS 완료: {dur:.1f}초")
-        return sentences, dur, timepoints
+        # 단어별 시작 시간 구성
+        word_timings = []
+        for i, wm in enumerate(word_marks):
+            start = tp_map.get(wm['mark'], None)
+            if start is None:
+                continue
+            # 끝 시간 = 다음 단어 시작 또는 +0.4초
+            if i + 1 < len(word_marks) and word_marks[i+1]['mark'] in tp_map:
+                end = tp_map[word_marks[i+1]['mark']]
+            else:
+                end = start + 0.4
+            word_timings.append({
+                'word': wm['word'], 'start': start, 'end': end,
+                'sent_idx': wm['sent_idx'], 'w_idx': wm['w_idx']
+            })
+
+        # 문장별 시간 범위도 계산
+        sent_timings = {}
+        for wt in word_timings:
+            si = wt['sent_idx']
+            if si not in sent_timings:
+                sent_timings[si] = {'start': wt['start'], 'end': wt['end']}
+            else:
+                sent_timings[si]['end'] = wt['end']
+
+        dur_r = run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                     '-of', 'default=noprint_wrappers=1:nokey=1', 'temp/audio.mp3'])
+        duration = float(dur_r.stdout.strip() or '28')
+
+        print(f"  TTS 완료: {duration:.1f}초, 단어 {len(word_timings)}개 타임포인트")
+        return sentences, duration, word_timings, sent_timings
+
     except Exception as e:
         print(f"  TTS 실패: {e}")
-        run(['ffmpeg','-f','lavfi','-i','anullsrc=r=44100:cl=mono','-t','28',
-             '-q:a','9','-acodec','libmp3lame','temp/audio.mp3','-y'])
+        run(['ffmpeg', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono',
+             '-t', '28', '-q:a', '9', '-acodec', 'libmp3lame', 'temp/audio.mp3', '-y'])
         n = len(sentences)
-        return sentences, 28.0, {i: i*(28/max(n,1)) for i in range(n)}
+        wt = []
+        st = {}
+        for i, sent in enumerate(sentences):
+            s = i * 28 / n
+            e = (i+1) * 28 / n
+            st[i] = {'start': s, 'end': e}
+            words = sent.split()
+            for j, w in enumerate(words):
+                ws = s + j * (e-s) / max(len(words),1)
+                we = s + (j+1) * (e-s) / max(len(words),1)
+                wt.append({'word':w,'start':ws,'end':we,'sent_idx':i,'w_idx':j})
+        return sentences, 28.0, wt, st
 
 # =============================================
-# 2단계: 쿠팡 이미지 Claude 자동 분류
+# 2단계: 쿠팡 소스 다운로드 및 분류
 # =============================================
-def classify_images_with_claude(image_urls, product_name):
-    """Claude가 이미지 URL을 보고 구간별 용도를 자동 분류"""
-    if not CLAUDE_KEY or not image_urls:
-        return {}
+def prepare_product_sources():
+    print("\n[2/6] 제품 소스 준비 중...")
 
-    print(f"\n[2/6] Claude로 이미지 {len(image_urls)}개 자동 분류 중...")
+    coupang_videos = SOURCES_DATA.get('_coupang_videos', [])
+    coupang_images = SOURCES_DATA.get('_coupang_images', [])
 
-    # URL 목록 (최대 20개)
-    urls_to_classify = image_urls[:20]
-    url_list = '\n'.join([f"{i}: {url}" for i, url in enumerate(urls_to_classify)])
+    # 영상 다운로드
+    product_videos = []
+    for i, v in enumerate(coupang_videos[:5]):
+        url = v.get('url', '')
+        if not url: continue
+        path = f'temp/prod_video_{i}.mp4'
+        print(f"  제품 영상 {i+1} 다운로드 중...")
+        if download_file(url, path, timeout=60):
+            dur = get_video_duration(path)
+            if dur > 0.5:
+                product_videos.append({'path': path, 'duration': dur})
+                print(f"  ✅ 제품 영상 {i+1}: {dur:.1f}초")
+            else:
+                print(f"  ⚠️ 영상 {i+1} 너무 짧음")
 
-    prompt = f"""당신은 쇼츠 영상 편집 전문가입니다.
+    # 이미지 다운로드
+    product_images = []
+    for i, img in enumerate(coupang_images[:15]):
+        url = img.get('url', '') or img.get('thumb', '')
+        if not url: continue
+        path = f'temp/prod_img_{i}.jpg'
+        if download_file(url, path, timeout=15):
+            product_images.append({'path': path})
 
+    print(f"  제품 영상: {len(product_videos)}개, 이미지: {len(product_images)}개")
+    return product_videos, product_images
+
+# =============================================
+# 3단계: Claude 이미지 분류
+# =============================================
+def classify_images(image_paths, product_name):
+    if not CLAUDE_KEY or not image_paths:
+        return {'opening':[], 'proof':[], 'solution':[], 'cta':[]}
+
+    print(f"\n[3/6] Claude 이미지 분류 중... ({len(image_paths)}개)")
+
+    urls_sample = [p['path'] for p in image_paths[:12]]
+    url_list = '\n'.join([f"{i}: {p}" for i, p in enumerate(urls_sample)])
+
+    prompt = f"""쇼츠 영상 편집 전문가입니다.
 상품명: {product_name}
-쿠팡 상세페이지에서 추출한 이미지 URL 목록:
+이미지 파일 경로 목록:
 {url_list}
 
-각 이미지 URL을 보고 이미지 용도를 추론해서 아래 구간 중 하나로 분류해주세요.
+파일명/순서로 이미지 용도를 추론해서 분류하세요.
+- opening: 첫 인상, 메인 제품샷
+- proof: 스펙/수치/인포그래픽/비교
+- solution: 사용 장면, 라이프스타일
+- cta: 전체샷, 패키지, 흰 배경
 
-구간 종류:
-- opening: 오프닝용 (강렬한 첫 인상, 메인 제품샷, 감성 장면)
-- proof: 증명용 (스펙 인포그래픽, 수치/비교표, 기능 설명)
-- solution: 해결/사용 장면 (실제 사용 모습, 라이프스타일)
-- cta: CTA용 (제품 전체샷, 패키지, 흰 배경 메인샷)
-- skip: 불필요 (배너, 아이콘, 로고, 브랜드 이미지)
-
-분류 기준:
-- coupangcdn URL에 /thumbnails/ 포함: opening 또는 cta
-- 인포그래픽처럼 보이는 URL (info, spec, feature 등): proof
-- 사람이 사용하는 장면 추정: solution
-- 작은 아이콘이나 뱃지: skip
-
-반드시 아래 JSON 형식으로만 응답하세요 (JSON 외 텍스트 금지):
-{{
-  "classifications": [
-    {{"index": 0, "type": "opening", "reason": "메인 제품샷"}},
-    {{"index": 1, "type": "proof", "reason": "스펙 인포그래픽"}},
-    ...
-  ]
-}}"""
+반드시 아래 JSON으로만 응답:
+{{"classifications":[{{"index":0,"type":"opening"}},{{"index":1,"type":"proof"}}]}}"""
 
     try:
         res = requests.post(
             'https://api.anthropic.com/v1/messages',
-            headers={'x-api-key': CLAUDE_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json'},
-            json={'model': 'claude-haiku-4-5-20251001', 'max_tokens': 1000,
-                  'messages': [{'role': 'user', 'content': prompt}]},
-            timeout=30
+            headers={'x-api-key':CLAUDE_KEY,'anthropic-version':'2023-06-01','content-type':'application/json'},
+            json={'model':'claude-haiku-4-5-20251001','max_tokens':600,
+                  'messages':[{'role':'user','content':prompt}]},
+            timeout=20
         )
-        data = res.json()
-        text = data['content'][0]['text'].replace('```json','').replace('```','').strip()
-        match = re.search(r'\{[\s\S]*\}', text)
-        if not match:
-            raise Exception('JSON 없음')
-        result = json.loads(match.group(0))
-
-        classified = {}
-        for item in result.get('classifications', []):
-            idx  = item.get('index', -1)
-            typ  = item.get('type', 'skip')
-            if 0 <= idx < len(urls_to_classify) and typ != 'skip':
-                if typ not in classified:
-                    classified[typ] = []
-                classified[typ].append(urls_to_classify[idx])
-
-        print(f"  분류 결과: {{{', '.join([f'{k}: {len(v)}개' for k,v in classified.items()])}}}")
+        text = res.json()['content'][0]['text'].replace('```json','').replace('```','').strip()
+        result = json.loads(re.search(r'\{[\s\S]*\}', text).group(0))
+        classified = {'opening':[],'proof':[],'solution':[],'cta':[]}
+        for item in result.get('classifications',[]):
+            idx = item.get('index',-1)
+            typ = item.get('type','solution')
+            if 0 <= idx < len(image_paths) and typ in classified:
+                classified[typ].append(image_paths[idx])
+        # 분류 안 된 이미지는 solution에
+        classified_indices = {item['index'] for item in result.get('classifications',[])}
+        for i, img in enumerate(image_paths[:12]):
+            if i not in classified_indices:
+                classified['solution'].append(img)
+        print(f"  분류: {{{', '.join([f'{k}:{len(v)}' for k,v in classified.items()])}}}")
         return classified
-
     except Exception as e:
-        print(f"  분류 실패: {e} — 순서대로 배치")
-        # 폴백: 순서대로 배치
-        n = len(urls_to_classify)
+        print(f"  분류 실패: {e} — 균등 분배")
+        n = len(image_paths)
+        q = max(1, n//4)
         return {
-            'opening':  urls_to_classify[:max(1, n//5)],
-            'proof':    urls_to_classify[max(1,n//5):max(2,n//5*2)],
-            'solution': urls_to_classify[max(2,n//5*2):max(3,n//5*3)],
-            'cta':      urls_to_classify[max(3,n//5*3):],
+            'opening':  image_paths[:q],
+            'proof':    image_paths[q:q*2],
+            'solution': image_paths[q*2:q*3],
+            'cta':      image_paths[q*3:],
         }
 
 # =============================================
-# 3단계: 구간별 소스 배치 (10구간)
+# 4단계: 구간 설계 + 소스 배정
 # =============================================
-def assign_sources(sentences, total_duration, timepoints, classified_images):
-    print("\n[3/6] 구간별 소스 배치 중...")
-    is_wow   = SCRIPT_DATA.get('type') == 'wow'
-    product  = SCRIPT_DATA.get('product', '')
-    analysis = SCRIPT_DATA.get('analysis', {})
-    main_pain = (analysis.get('main_pains') or [''])[0]
+def design_sections_and_assign(sentences, duration, sent_timings, product_videos, product_images_classified):
+    print("\n[4/6] 구간 설계 + 소스 배정 중...")
+    is_wow = SCRIPT_DATA.get('type') == 'wow'
 
-    # 구간 정의
+    # 총 제품 영상 길이
+    total_video_dur = sum(v['duration'] for v in product_videos)
+    has_long_video  = total_video_dur >= 15  # 15초 이상이면 영상 중심
+
+    print(f"  제품 영상 총 {total_video_dur:.1f}초 — {'영상 중심 모드' if has_long_video else '이미지 중심 모드'}")
+
+    # 구간 정의 (sent_idx: 어느 문장에 해당하는지)
     if is_wow:
         section_defs = [
-            ('opening_1', 'opening', 0, 0),
-            ('opening_2', 'opening', 0, 1),
-            ('proof_1',   'proof',   1, 0),
-            ('proof_2',   'proof',   1, 1),
-            ('proof_3',   'proof',   1, 2),
-            ('usage_1',   'solution',2, 0),
-            ('usage_2',   'solution',2, 1),
-            ('usage_3',   'solution',2, 2),
-            ('cta_1',     'cta',     3, 0),
-            ('cta_2',     'cta',     3, 1),
+            ('opening_1','opening',0,0), ('opening_2','opening',0,1),
+            ('proof_1','proof',1,0),     ('proof_2','proof',1,1),   ('proof_3','proof',1,2),
+            ('usage_1','solution',2,0),  ('usage_2','solution',2,1),('usage_3','solution',2,2),
+            ('cta_1','cta',3,0),         ('cta_2','cta',3,1),
         ]
     else:
         section_defs = [
-            ('opening_1',  'opening',  0, 0),
-            ('opening_2',  'opening',  0, 1),
-            ('empathy_1',  'empathy',  1, 0),
-            ('empathy_2',  'empathy',  1, 1),
-            ('empathy_3',  'empathy',  1, 2),
-            ('solution_1', 'solution', 2, 0),
-            ('solution_2', 'solution', 2, 1),
-            ('solution_3', 'solution', 2, 2),
-            ('cta_1',      'cta',      3, 0),
-            ('cta_2',      'cta',      3, 1),
+            ('opening_1','opening',0,0), ('opening_2','opening',0,1),
+            ('empathy_1','empathy',1,0), ('empathy_2','empathy',1,1),('empathy_3','empathy',1,2),
+            ('solution_1','solution',2,0),('solution_2','solution',2,1),('solution_3','solution',2,2),
+            ('cta_1','cta',3,0),         ('cta_2','cta',3,1),
         ]
 
-    # 문장별 시간 범위
-    n = len(sentences)
-    seg_times = []
-    for i in range(n):
-        s = timepoints.get(i, i * total_duration / n)
-        e = timepoints.get(i+1, s + total_duration / n) if i+1 < n else total_duration
-        seg_times.append((s, e))
+    n_sent = len(sentences)
+    # 문장별 시간
+    def seg_time(sent_idx, subcut, n_subcuts):
+        ti = sent_timings.get(sent_idx, {'start': sent_idx*duration/n_sent, 'end': (sent_idx+1)*duration/n_sent})
+        seg_dur = (ti['end'] - ti['start']) / n_subcuts
+        start   = ti['start'] + subcut * seg_dur
+        end     = ti['start'] + (subcut+1) * seg_dur
+        return start, end, max(seg_dur, 0.5)
 
-    # 이미지 인덱스 트래커
-    img_idx = {k: 0 for k in ['opening','proof','solution','empathy','cta']}
+    # 구간별 최대 서브컷 수 파악
+    subcut_counts = {}
+    for (key, img_type, sent_idx, subcut) in section_defs:
+        k = (img_type, sent_idx)
+        subcut_counts[k] = max(subcut_counts.get(k, 0), subcut + 1)
 
-    # Gemini 프롬프트 (제품 소스가 없을 때 보조)
+    # 소스 인덱스 트래커
+    img_idx    = {t: 0 for t in ['opening','proof','solution','empathy','cta']}
+    vid_idx    = 0
+    vid_seek   = 0.0  # 현재 영상에서 몇 초부터 사용할지
+
+    # Gemini 프롬프트 (보조용)
+    main_pain = (SCRIPT_DATA.get('analysis', {}).get('main_pains') or [''])[0]
     gemini_prompts = {
-        'opening':  f'Korean person extremely frustrated, dramatic dark lighting, close-up emotional face, no product, vertical 9:16 portrait',
-        'empathy':  f'Person struggling with problem "{main_pain}", realistic dark moody, vertical 9:16',
-        'cta':      f'Person smiling satisfied, bright warm lifestyle, vertical 9:16',
+        'opening': f'Korean person extremely frustrated, dramatic dark lighting, close-up face, vertical 9:16',
+        'empathy': f'Person struggling with problem "{main_pain}", dark moody realistic, vertical 9:16',
+        'cta':     f'Person smiling satisfied, bright warm lifestyle, vertical 9:16',
     }
 
     sections = []
     for (key, img_type, sent_idx, subcut) in section_defs:
-        if sent_idx >= len(seg_times):
+        if sent_idx >= n_sent:
             continue
+        n_subcuts = subcut_counts.get((img_type, sent_idx), 1)
+        start, end, dur = seg_time(sent_idx, subcut, n_subcuts)
 
-        seg_start, seg_end = seg_times[sent_idx]
-        seg_dur   = seg_end - seg_start
-        n_subcuts = 1 if seg_dur < 3 else (2 if seg_dur < 6 else 3)
-        cut_dur   = seg_dur / n_subcuts
+        src = None  # {'type': 'video'/'image'/'ai'/'color', ...}
 
-        start = seg_start + subcut * cut_dur
-        end   = seg_start + (subcut+1) * cut_dur
-        dur   = cut_dur
+        # ── 영상 중심 모드: 제품 영상을 구간별로 seek해서 사용 ──
+        if has_long_video and img_type in ['proof','solution','usage']:
+            if vid_idx < len(product_videos):
+                vid = product_videos[vid_idx]
+                remaining = vid['duration'] - vid_seek
+                if remaining >= dur:
+                    src = {'type':'video','path':vid['path'],'seek':vid_seek,'dur':dur}
+                    vid_seek += dur
+                    if vid_seek >= vid['duration'] - 0.5:
+                        vid_idx += 1
+                        vid_seek = 0.0
+                elif remaining > 0.5:
+                    src = {'type':'video','path':vid['path'],'seek':vid_seek,'dur':remaining}
+                    vid_idx += 1
+                    vid_seek = 0.0
+                else:
+                    vid_idx += 1
+                    vid_seek = 0.0
 
-        # 이미지 배정
-        img_url = None
-        img_urls_for_type = classified_images.get(img_type, [])
-
-        # opening은 감성 우선 (Gemini), 나머지는 제품 이미지 우선
-        if img_type in ['solution','proof','cta'] and img_urls_for_type:
-            idx = img_idx[img_type] % len(img_urls_for_type)
-            img_url = img_urls_for_type[idx]
-            img_idx[img_type] += 1
-        elif img_type == 'opening' and img_urls_for_type and subcut > 0:
-            # 오프닝 2번째 컷은 제품 이미지
-            idx = img_idx[img_type] % len(img_urls_for_type)
-            img_url = img_urls_for_type[idx]
-            img_idx[img_type] += 1
-        elif img_type == 'empathy' and img_urls_for_type:
-            idx = img_idx.get('empathy',0) % len(img_urls_for_type)
-            img_url = img_urls_for_type[idx]
-            img_idx['empathy'] = img_idx.get('empathy',0) + 1
-
-        # 웹앱에서 선택된 소스 있으면 덮어쓰기
-        selected = SOURCES_DATA.get(key, {}).get('selected', {})
-        if selected and selected.get('data', {}).get('url'):
-            img_url = selected['data']['url']
+        # ── 이미지 배정 (영상 없거나 opening/cta) ──
+        if src is None:
+            img_list = product_images_classified.get(img_type, [])
+            # empathy는 solution 이미지 활용
+            if not img_list and img_type == 'empathy':
+                img_list = product_images_classified.get('solution', [])
+            # 이미지가 있으면 순환 사용 (블랙 화면 방지)
+            if img_list:
+                idx = img_idx.get(img_type, 0) % len(img_list)
+                src = {'type':'image','path':img_list[idx]['path']}
+                img_idx[img_type] = img_idx.get(img_type, 0) + 1
+            elif img_type in gemini_prompts:
+                src = {'type':'ai','prompt':gemini_prompts[img_type]}
+            else:
+                # 다른 타입 이미지 순환 (블랙 화면 방지)
+                all_imgs = []
+                for imgs in product_images_classified.values():
+                    all_imgs.extend(imgs)
+                if all_imgs:
+                    fallback_idx = sum(img_idx.values()) % len(all_imgs)
+                    src = {'type':'image','path':all_imgs[fallback_idx]['path']}
+                else:
+                    src = {'type':'ai','prompt':f'{SCRIPT_DATA.get("product","")} product lifestyle, vertical 9:16'}
 
         sections.append({
-            'key':       key,
-            'img_type':  img_type,
-            'sent_idx':  sent_idx,
-            'subcut':    subcut,
-            'start':     start,
-            'end':       end,
-            'duration':  max(dur, 0.5),
-            'text':      sentences[sent_idx] if sent_idx < len(sentences) else '',
-            'img_url':   img_url,
-            'gemini_prompt': gemini_prompts.get(img_type) if not img_url else None,
+            'key': key, 'img_type': img_type,
+            'sent_idx': sent_idx, 'subcut': subcut,
+            'start': start, 'end': end, 'duration': dur,
+            'text': sentences[sent_idx],
+            'src': src,
         })
-        print(f"  [{key}] {img_type} {dur:.1f}초 — {'제품이미지' if img_url else 'Gemini AI'}")
+        src_desc = f"{src['type']}:{src.get('path','')[-20:] if src.get('path') else src.get('prompt','')[:30]}"
+        print(f"  [{key}] {dur:.1f}초 → {src_desc}")
 
     return sections
 
 # =============================================
-# 4단계: 클립 생성 (이미지 다운로드 + FFmpeg)
+# 5단계: 클립 생성
 # =============================================
-def download_or_generate_image(section, idx):
-    """이미지 URL 다운로드 또는 Gemini AI 생성"""
-    img_url = section.get('img_url')
-    out_path = f'temp/src_{idx:02d}.jpg'
+gemini_cache = {}
 
-    # 1. URL 다운로드
-    if img_url:
-        if download_file(img_url, out_path):
-            return out_path, 'image'
+def get_ai_image(prompt):
+    if prompt in gemini_cache:
+        return gemini_cache[prompt]
+    if not GEMINI_KEY:
+        return None
+    try:
+        res = requests.post(
+            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key={GEMINI_KEY}',
+            json={'contents':[{'parts':[{'text':prompt}]}],'generationConfig':{'responseModalities':['TEXT','IMAGE']}},
+            timeout=40
+        )
+        parts = res.json().get('candidates',[{}])[0].get('content',{}).get('parts',[])
+        img_part = next((p for p in parts if 'inlineData' in p), None)
+        if img_part:
+            path = f'temp/ai_{len(gemini_cache):02d}.jpg'
+            with open(path,'wb') as f:
+                f.write(base64.b64decode(img_part['inlineData']['data']))
+            gemini_cache[prompt] = path
+            return path
+    except Exception as e:
+        print(f"  Gemini 실패: {e}")
+    gemini_cache[prompt] = None
+    return None
 
-    # 2. Gemini AI 생성
-    prompt = section.get('gemini_prompt')
-    if prompt and GEMINI_KEY:
-        try:
-            res = requests.post(
-                f'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key={GEMINI_KEY}',
-                json={'contents':[{'parts':[{'text':prompt}]}],'generationConfig':{'responseModalities':['TEXT','IMAGE']}},
-                timeout=40
-            )
-            parts = res.json().get('candidates',[{}])[0].get('content',{}).get('parts',[])
-            img_part = next((p for p in parts if 'inlineData' in p), None)
-            if img_part:
-                with open(out_path, 'wb') as f:
-                    f.write(base64.b64decode(img_part['inlineData']['data']))
-                return out_path, 'ai'
-        except Exception as e:
-            print(f"  Gemini 실패: {e}")
+def make_clip(sec, out_path):
+    src = sec['src']
+    dur = sec['duration']
+    dur = max(dur, 0.5)
+    scale = f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}'
+    frames = int(dur * 30)
 
-    return None, 'color'
-
-def make_clip(src_path, src_type, duration, out_path, is_opening=False):
-    """클립 생성 (줌인 효과 포함)"""
-    duration = max(duration, 0.5)
-    scale    = f'scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}'
-    frames   = int(duration * 30)
-
-    if src_type in ('image','ai') and src_path and Path(src_path).exists():
-        if is_opening:
-            zoom = f'zoompan=z=\'if(eq(on,1),1.3,max(zoom-0.003,1.0))\':d={frames}:s={W}x{H}:fps=30'
-        else:
-            zoom = f'zoompan=z=\'min(zoom+0.0005,1.12)\':d={frames}:s={W}x{H}:fps=30'
-
-        run(['ffmpeg', '-loop', '1', '-i', src_path,
-             '-vf', f'scale={W*2}:{H*2},{zoom}',
-             '-t', str(duration), '-r', '30',
+    if src['type'] == 'video' and Path(src.get('path','')).exists():
+        seek = src.get('seek', 0)
+        run(['ffmpeg', '-ss', str(seek), '-i', src['path'],
+             '-vf', scale, '-t', str(dur), '-r', '30',
              '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
              out_path, '-y'])
 
+    elif src['type'] == 'image' and Path(src.get('path','')).exists():
+        is_open = sec['img_type'] == 'opening' and sec['subcut'] == 0
+        if is_open:
+            zoom = f'zoompan=z=\'if(eq(on,1),1.3,max(zoom-0.003,1.0))\':d={frames}:s={W}x{H}:fps=30'
+        else:
+            zoom = f'zoompan=z=\'min(zoom+0.0005,1.12)\':d={frames}:s={W}x{H}:fps=30'
+        run(['ffmpeg', '-loop', '1', '-i', src['path'],
+             '-vf', f'scale={W*2}:{H*2},{zoom}',
+             '-t', str(dur), '-r', '30',
+             '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
+             out_path, '-y'])
         if not Path(out_path).exists():
-            # 줌 실패 시 단순 스케일
-            run(['ffmpeg', '-loop', '1', '-i', src_path,
-                 '-vf', scale, '-t', str(duration), '-r', '30',
+            run(['ffmpeg', '-loop', '1', '-i', src['path'],
+                 '-vf', scale, '-t', str(dur), '-r', '30',
                  '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
                  out_path, '-y'])
-    else:
-        # 검정 배경
+
+    elif src['type'] == 'ai':
+        img_path = get_ai_image(src.get('prompt',''))
+        if img_path and Path(img_path).exists():
+            run(['ffmpeg', '-loop', '1', '-i', img_path,
+                 '-vf', scale, '-t', str(dur), '-r', '30',
+                 '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-an',
+                 out_path, '-y'])
+
+    # 최후 폴백 — 그래도 없으면 직전 클립 복사 or 검정
+    if not Path(out_path).exists():
         run(['ffmpeg', '-f', 'lavfi', '-i', f'color=black:size={W}x{H}:rate=30',
-             '-t', str(duration), '-c:v', 'libx264', '-preset', 'fast', '-an',
+             '-t', str(dur), '-c:v', 'libx264', '-preset', 'fast', '-an',
              out_path, '-y'])
 
 def build_clips(sections):
-    print("\n[4/6] 클립 생성 중...")
+    print("\n[5/6] 클립 생성 중...")
     clips = []
+    last_valid = None  # 블랙 화면 방지: 마지막 유효 클립 경로
+
     for idx, sec in enumerate(sections):
-        src_path, src_type = download_or_generate_image(sec, idx)
         out = f'temp/clip_{idx:02d}.mp4'
-        make_clip(src_path, src_type, sec['duration'], out, is_opening=(idx==0))
-        if Path(out).exists():
-            clips.append({'path': out, 'section': sec, 'src_type': src_type})
-            print(f"  [{sec['key']}] {src_type} {sec['duration']:.1f}초 ✅")
+        make_clip(sec, out)
+
+        if Path(out).exists() and Path(out).stat().st_size > 1000:
+            last_valid = out
+            clips.append({'path': out, 'section': sec})
+            print(f"  [{sec['key']}] {sec['duration']:.1f}초 ✅ ({sec['src']['type']})")
+        elif last_valid:
+            # 블랙 화면 대신 직전 유효 클립 재사용
+            import shutil
+            shutil.copy(last_valid, out)
+            clips.append({'path': out, 'section': sec})
+            print(f"  [{sec['key']}] {sec['duration']:.1f}초 ♻️ (직전 클립 재사용)")
         else:
-            # 폴백: 검정 배경
-            make_clip(None, 'color', sec['duration'], out)
-            if Path(out).exists():
-                clips.append({'path': out, 'section': sec, 'src_type': 'color'})
+            # 첫 클립부터 실패 — 검정 배경
+            run(['ffmpeg', '-f', 'lavfi', '-i', f'color=black:size={W}x{H}:rate=30',
+                 '-t', str(sec['duration']), '-c:v', 'libx264', '-preset', 'fast', '-an', out, '-y'])
+            clips.append({'path': out, 'section': sec})
+
     return clips
 
 # =============================================
-# 5단계: FFmpeg 오버레이 텍스트 추출
+# 6단계: ASS 자막 (단어 단위 싱크 + 밈 스타일)
 # =============================================
-def extract_overlay_text(section, analysis):
-    """구간별 오버레이 텍스트 결정"""
-    img_type  = section['img_type']
-    text      = section['text']
-    subcut    = section['subcut']
-    key_specs = analysis.get('key_specs', [])
-    price_appeal = analysis.get('price_appeal', '')
-
-    if img_type == 'proof' and key_specs:
-        # 스펙 강조 텍스트
-        spec_idx = section['subcut'] % len(key_specs)
-        return key_specs[spec_idx], 'spec'
-    elif img_type == 'cta':
-        return price_appeal[:20] if price_appeal else '지금 링크 클릭!', 'cta'
-    else:
-        return None, None
-
-# =============================================
-# 6단계: ASS 자막 생성 (혼합 스타일)
-# =============================================
-def build_subtitles_ass(clips, total_duration):
-    print("\n[5/6] 자막 생성 중 (혼합 스타일)...")
+def build_subtitles_ass(word_timings, total_duration):
+    print("\n[6/6] 자막 생성 중 (단어 싱크 + 밈 스타일)...")
 
     def fmt(t):
         t = max(0, t)
         return f"{int(t//3600)}:{int((t%3600)//60):02d}:{int(t%60):02d}.{int((t%1)*100):02d}"
+
+    # 밈 스타일 색상 교대 (노란/흰/하늘)
+    COLORS = ['&H00FFE500', '&H00FFFFFF', '&H00E5FF00']
 
     ass = f"""[Script Info]
 ScriptType: v4.00+
@@ -433,73 +522,54 @@ PlayResY: {H}
 
 [V4+ Styles]
 Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
-Style: Opening,Noto Sans CJK KR,130,&H00FFE500,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,6,0,1,10,6,5,60,60,960,1
-Style: Body,Noto Sans CJK KR,72,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,3,0,1,7,4,5,60,60,960,1
-Style: Spec,Noto Sans CJK KR,65,&H0000E5FF,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,2,0,1,6,3,5,60,60,840,1
+Style: Hook,Noto Sans CJK KR,140,&H00FFE500,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,6,0,1,12,7,5,40,40,960,1
+Style: W0,Noto Sans CJK KR,95,&H00FFE500,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,4,0,1,8,5,5,40,40,960,1
+Style: W1,Noto Sans CJK KR,95,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,4,0,1,8,5,5,40,40,960,1
+Style: W2,Noto Sans CJK KR,95,&H0000FFFF,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,4,0,1,8,5,5,40,40,960,1
+Style: Spec,Noto Sans CJK KR,68,&H0000E5FF,&H000000FF,&H00000000,&H00000000,1,0,0,0,100,100,2,0,1,6,3,2,40,40,820,1
 
 [Events]
 Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
 """
-    # 문장별 첫 서브컷에만 자막 표시
-    shown_sents = set()
-    analysis    = SCRIPT_DATA.get('analysis', {})
+    color_idx = 0
+    prev_sent = -1
 
-    for clip_data in clips:
-        sec      = clip_data['section']
-        start    = sec['start']
-        end      = sec['end']
-        text     = sec['text']
-        img_type = sec['img_type']
-        subcut   = sec['subcut']
-        sent_key = (sec['sent_idx'], img_type)
+    # 단어별 자막 생성
+    for i, wt in enumerate(word_timings):
+        word  = wt['word'].strip()
+        if not word:
+            continue
 
-        # ── 오프닝 첫 컷: 핵심 단어 대형 노란색 ──
-        if img_type == 'opening' and subcut == 0:
-            # 핵심 단어 추출 (첫 어절)
-            words = [w for w in re.split(r'[\s,.!?]+', text) if len(w) >= 2]
-            kw = words[0][:8] if words else text[:6]
-            ass += f"Dialogue: 0,{fmt(start)},{fmt(end)},Opening,,0,0,0,,{kw}\n"
+        start = wt['start']
+        end   = wt['end']
+        sent_i = wt['sent_idx']
 
-        # ── 본문: 문장 전체 흰색 중앙 ──
-        elif sent_key not in shown_sents:
-            shown_sents.add(sent_key)
-            # 줄바꿈 (16자 기준)
-            if len(text) > 16:
-                mid  = len(text) // 2
-                # 중간 공백 찾기
-                left  = text[:mid].rfind(' ')
-                right = text[mid:].find(' ')
-                if left > mid//2:
-                    text_fmt = text[:left] + '\\N' + text[left+1:]
-                elif right != -1:
-                    pos = mid + right
-                    text_fmt = text[:pos] + '\\N' + text[pos+1:]
-                else:
-                    text_fmt = text[:mid] + '\\N' + text[mid:]
-            else:
-                text_fmt = text
+        # 첫 문장 첫 단어: 대형 후킹 스타일
+        if sent_i == 0 and wt['w_idx'] == 0:
+            ass += f"Dialogue: 0,{fmt(start)},{fmt(end)},Hook,,0,0,0,,{word}\n"
+        else:
+            # 밈 스타일: 단어마다 색상 교대
+            style = f"W{color_idx % 3}"
+            ass += f"Dialogue: 0,{fmt(start)},{fmt(end)},{style},,0,0,0,,{word}\n"
 
-            ass += f"Dialogue: 0,{fmt(start)},{fmt(end)},Body,,0,0,0,,{text_fmt}\n"
-
-        # ── Spec 오버레이 (증명 구간) ──
-        overlay_text, overlay_type = extract_overlay_text(sec, analysis)
-        if overlay_text and overlay_type == 'spec':
-            spec_text = esc(overlay_text)
-            ass += f"Dialogue: 1,{fmt(start)},{fmt(end)},Spec,,0,0,0,,{spec_text}\n"
+        if sent_i != prev_sent:
+            color_idx = 0
+            prev_sent = sent_i
+        else:
+            color_idx += 1
 
     path = 'temp/subtitles.ass'
     with open(path, 'w', encoding='utf-8') as f:
         f.write(ass)
-    print(f"  자막 완료")
+    print(f"  자막 {len(word_timings)}개 단어 완료")
     return path
 
 # =============================================
 # 7단계: 최종 합성
 # =============================================
 def final_render(clips, ass_path):
-    print("\n[6/6] 최종 합성 중...")
+    print("\n[7/6] 최종 합성 중...")
 
-    # 클립 연결
     with open('temp/concat.txt', 'w') as f:
         for c in clips:
             f.write(f"file '{os.path.abspath(c['path'])}'\n")
@@ -512,17 +582,15 @@ def final_render(clips, ass_path):
 
     abs_ass = os.path.abspath(ass_path).replace('\\','/').replace(':','\\:')
 
-    # 자막 + 음성 합성
     run(['ffmpeg',
-         '-i', 'temp/merged.mp4',
-         '-i', 'temp/audio.mp3',
+         '-i', 'temp/merged.mp4', '-i', 'temp/audio.mp3',
          '-vf', f"ass='{abs_ass}'",
          '-c:v', 'libx264', '-preset', 'fast', '-crf', '18',
          '-c:a', 'aac', '-b:a', '128k',
          '-shortest', 'output/final.mp4', '-y'])
 
     if not Path('output/final.mp4').exists():
-        print("  자막 합성 실패 — 자막 없이 재시도")
+        print("  자막 실패 — 자막 없이 재시도")
         run(['ffmpeg',
              '-i', 'temp/merged.mp4', '-i', 'temp/audio.mp3',
              '-c:v', 'libx264', '-preset', 'fast', '-crf', '18',
@@ -542,19 +610,29 @@ if __name__ == '__main__':
     try:
         install_fonts()
 
-        sentences, duration, timepoints = generate_tts()
+        # TTS
+        sentences, duration, word_timings, sent_timings = generate_tts()
 
-        # 쿠팡 이미지 분류
-        coupang_images = SOURCES_DATA.get('_coupang_images', [])
-        image_urls = [img.get('url','') or img.get('thumb','') for img in coupang_images if img.get('url') or img.get('thumb')]
+        # 제품 소스 준비
+        product_videos, product_images = prepare_product_sources()
 
-        product = SCRIPT_DATA.get('product', '')
-        classified = classify_images_with_claude(image_urls, product) if image_urls else {}
+        # 이미지 분류 (영상이 부족할 때 사용)
+        product_name = SCRIPT_DATA.get('product', '')
+        classified = classify_images(product_images, product_name) if product_images else {'opening':[],'proof':[],'solution':[],'cta':[]}
 
-        analysis = SCRIPT_DATA.get('analysis', {})
-        sections = assign_sources(sentences, duration, timepoints, classified)
-        clips    = build_clips(sections)
-        ass_path = build_subtitles_ass(clips, duration)
+        # 구간 설계 + 소스 배정
+        sections = design_sections_and_assign(
+            sentences, duration, sent_timings,
+            product_videos, classified
+        )
+
+        # 클립 생성
+        clips = build_clips(sections)
+
+        # 자막 (단어 단위 싱크)
+        ass_path = build_subtitles_ass(word_timings, duration)
+
+        # 최종 합성
         final_render(clips, ass_path)
 
     except Exception as e:
