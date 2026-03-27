@@ -1,5 +1,5 @@
 // =============================================
-// v2.5 — 쿠팡 실제 이미지/영상 자동 추출
+// v3.0 — 쿠팡 이미지 자동 분류 + 구간 배치
 // =============================================
 
 const CATEGORIES = {
@@ -12,12 +12,11 @@ const CATEGORIES = {
 };
 
 // =============================================
-// 쿠팡 상세페이지 이미지/영상 추출
+// 쿠팡 미디어 추출
 // =============================================
 async function extractCoupangMedia(url) {
   if (!url) return { videos: [], images: [] };
-
-  console.log('쿠팡 미디어 추출 시작:', url);
+  console.log('쿠팡 미디어 추출:', url);
 
   const proxies = [
     `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
@@ -27,80 +26,43 @@ async function extractCoupangMedia(url) {
   let html = '';
   for (const proxy of proxies) {
     try {
-      const res = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(12000) });
       const data = await res.json();
       html = data.contents || data.body || '';
       if (html.length > 1000) break;
-    } catch(e) {
-      console.log('프록시 실패:', proxy, e.message);
-    }
+    } catch(e) { console.log('프록시 실패:', e.message); }
   }
 
-  if (!html) {
-    console.log('페이지 로드 실패');
-    return { videos: [], images: [] };
-  }
+  if (!html) return { videos: [], images: [] };
 
   const videos = [];
   const images = [];
+  const seenImgs = new Set();
 
-  // ── 영상 추출 ──
-
-  // MP4 직접 링크
+  // 영상 추출
   const mp4Matches = html.matchAll(/https?:\/\/[^"'\s]+\.mp4[^"'\s]*/g);
   for (const m of mp4Matches) {
-    const url2 = m[0].replace(/&amp;/g, '&');
-    if (!videos.find(v => v.url === url2)) {
-      videos.push({ url: url2, type: 'mp4', thumb: null });
-    }
+    const u = m[0].replace(/&amp;/g, '&');
+    if (!videos.find(v => v.url === u)) videos.push({ url: u, type: 'mp4', thumb: null });
   }
-
-  // 쿠팡 CDN 영상 패턴
-  const cdnVideoPatterns = [
-    /(?:src|data-src)=["']([^"']*(?:video|\.mp4|\.m3u8)[^"']*)["']/gi,
-    /"videoUrl"\s*:\s*"([^"]+)"/g,
-    /"url"\s*:\s*"([^"]*\.mp4[^"]*)"/g,
-  ];
-  for (const pattern of cdnVideoPatterns) {
-    const matches = html.matchAll(pattern);
-    for (const m of matches) {
-      const u = m[1].replace(/\\u002F/g, '/').replace(/\\/g, '').replace(/&amp;/g, '&');
-      if (u.startsWith('http') && !videos.find(v => v.url === u)) {
-        videos.push({ url: u, type: 'mp4', thumb: null });
-      }
-    }
-  }
-
-  // YouTube 임베드
   const ytMatches = html.matchAll(/(?:youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/g);
   for (const m of ytMatches) {
     const vid = m[1];
-    videos.push({
-      url: `https://www.youtube.com/watch?v=${vid}`,
-      type: 'youtube',
-      thumb: `https://img.youtube.com/vi/${vid}/maxresdefault.jpg`,
-      embedUrl: `https://www.youtube.com/embed/${vid}`,
-    });
+    videos.push({ url: `https://www.youtube.com/watch?v=${vid}`, type: 'youtube', thumb: `https://img.youtube.com/vi/${vid}/maxresdefault.jpg` });
   }
 
-  // ── 이미지 추출 ──
-
-  // 쿠팡 CDN 이미지 패턴
+  // 이미지 추출 (쿠팡 CDN 패턴)
   const imgPatterns = [
     /https?:\/\/thumbnail[^"'\s]+\.(?:jpg|jpeg|png|webp)[^"'\s]*/g,
     /https?:\/\/[^"'\s]*coupangcdn[^"'\s]*\.(?:jpg|jpeg|png|webp)[^"'\s]*/g,
     /https?:\/\/[^"'\s]*itemcdn[^"'\s]*\.(?:jpg|jpeg|png|webp)[^"'\s]*/g,
     /"imageUrl"\s*:\s*"([^"]+)"/g,
-    /"url"\s*:\s*"([^"]*(?:jpg|jpeg|png|webp)[^"]*)"/g,
   ];
-
-  const seenImgs = new Set();
   for (const pattern of imgPatterns) {
     const matches = html.matchAll(pattern);
     for (const m of matches) {
       let imgUrl = (m[1] || m[0]).replace(/&amp;/g, '&').replace(/\\/g, '');
       if (!imgUrl.startsWith('http')) continue;
-      // 썸네일/아이콘 제외, 상품 이미지만
       if (imgUrl.includes('icon') || imgUrl.includes('logo') || imgUrl.includes('badge')) continue;
       if (seenImgs.has(imgUrl)) continue;
       seenImgs.add(imgUrl);
@@ -115,34 +77,34 @@ async function extractCoupangMedia(url) {
 }
 
 // =============================================
-// 10구간 설계
+// 10구간 정의
 // =============================================
 function getSections(type) {
   if (type === 'wow') {
     return [
-      { key: 'opening_1',  label: '⚡ 오프닝 1 (0~2초)',   scriptKey: 'opening',  desc: '첫 번째 충격 장면' },
-      { key: 'opening_2',  label: '⚡ 오프닝 2 (2~4초)',   scriptKey: 'opening',  desc: '제품 클로즈업' },
-      { key: 'proof_1',    label: '🔍 증명 1 (4~8초)',     scriptKey: 'proof',    desc: '스펙/수치' },
-      { key: 'proof_2',    label: '🔍 증명 2 (8~11초)',    scriptKey: 'proof',    desc: '제품 디테일' },
-      { key: 'proof_3',    label: '🔍 증명 3 (11~14초)',   scriptKey: 'proof',    desc: '실제 작동' },
-      { key: 'usage_1',    label: '🎯 활용 1 (14~18초)',   scriptKey: 'usage',    desc: '사용 전' },
-      { key: 'usage_2',    label: '🎯 활용 2 (18~22초)',   scriptKey: 'usage',    desc: '사용 중' },
-      { key: 'usage_3',    label: '🎯 활용 3 (22~25초)',   scriptKey: 'usage',    desc: '사용 후' },
-      { key: 'cta_1',      label: '🔗 CTA 1 (25~27초)',    scriptKey: 'cta',      desc: '제품 강조' },
-      { key: 'cta_2',      label: '🔗 CTA 2 (27~30초)',    scriptKey: 'cta',      desc: '링크 유도' },
+      { key: 'opening_1',  label: '⚡ 오프닝 1',   imgType: 'opening',  desc: '첫 충격 장면' },
+      { key: 'opening_2',  label: '⚡ 오프닝 2',   imgType: 'opening',  desc: '제품 첫 등장' },
+      { key: 'proof_1',    label: '🔍 증명 1',     imgType: 'proof',    desc: '스펙 인포그래픽' },
+      { key: 'proof_2',    label: '🔍 증명 2',     imgType: 'proof',    desc: '수치/비교' },
+      { key: 'proof_3',    label: '🔍 증명 3',     imgType: 'proof',    desc: '기능 설명' },
+      { key: 'usage_1',    label: '🎯 활용 1',     imgType: 'solution', desc: '사용 전' },
+      { key: 'usage_2',    label: '🎯 활용 2',     imgType: 'solution', desc: '사용 중' },
+      { key: 'usage_3',    label: '🎯 활용 3',     imgType: 'solution', desc: '사용 후' },
+      { key: 'cta_1',      label: '🔗 CTA 1',      imgType: 'cta',      desc: '제품 강조' },
+      { key: 'cta_2',      label: '🔗 CTA 2',      imgType: 'cta',      desc: '링크 유도' },
     ];
   } else {
     return [
-      { key: 'opening_1',  label: '⚡ 오프닝 1 (0~2초)',   scriptKey: 'opening',  desc: '강렬한 후킹' },
-      { key: 'opening_2',  label: '⚡ 오프닝 2 (2~4초)',   scriptKey: 'opening',  desc: '문제 상황' },
-      { key: 'empathy_1',  label: '💭 공감 1 (4~8초)',     scriptKey: 'empathy',  desc: '좌절 장면' },
-      { key: 'empathy_2',  label: '💭 공감 2 (8~11초)',    scriptKey: 'empathy',  desc: '불편 클로즈업' },
-      { key: 'empathy_3',  label: '💭 공감 3 (11~13초)',   scriptKey: 'empathy',  desc: '공감 강화' },
-      { key: 'solution_1', label: '✅ 해결 1 (13~17초)',   scriptKey: 'solution', desc: '제품 등장' },
-      { key: 'solution_2', label: '✅ 해결 2 (17~21초)',   scriptKey: 'solution', desc: '제품 사용' },
-      { key: 'solution_3', label: '✅ 해결 3 (21~25초)',   scriptKey: 'solution', desc: '변화/만족' },
-      { key: 'cta_1',      label: '🔗 CTA 1 (25~27초)',    scriptKey: 'cta',      desc: '제품 강조' },
-      { key: 'cta_2',      label: '🔗 CTA 2 (27~30초)',    scriptKey: 'cta',      desc: '링크 유도' },
+      { key: 'opening_1',  label: '⚡ 오프닝 1',   imgType: 'opening',  desc: '강렬한 후킹' },
+      { key: 'opening_2',  label: '⚡ 오프닝 2',   imgType: 'opening',  desc: '문제 상황' },
+      { key: 'empathy_1',  label: '💭 공감 1',     imgType: 'empathy',  desc: '좌절 장면' },
+      { key: 'empathy_2',  label: '💭 공감 2',     imgType: 'empathy',  desc: '불편 클로즈업' },
+      { key: 'empathy_3',  label: '💭 공감 3',     imgType: 'empathy',  desc: '공감 강화' },
+      { key: 'solution_1', label: '✅ 해결 1',     imgType: 'solution', desc: '제품 등장' },
+      { key: 'solution_2', label: '✅ 해결 2',     imgType: 'solution', desc: '제품 사용' },
+      { key: 'solution_3', label: '✅ 해결 3',     imgType: 'solution', desc: '변화/만족' },
+      { key: 'cta_1',      label: '🔗 CTA 1',      imgType: 'cta',      desc: '제품 강조' },
+      { key: 'cta_2',      label: '🔗 CTA 2',      imgType: 'cta',      desc: '링크 유도' },
     ];
   }
 }
@@ -163,105 +125,16 @@ function buildSourceSearchLinks(productName) {
 }
 
 function renderSourceSearchLinks(productName, containerId) {
-  const links = buildSourceSearchLinks(productName);
   const el = document.getElementById(containerId);
   if (!el) return;
+  const links = buildSourceSearchLinks(productName);
   el.innerHTML = `
-    <div style="margin-top:16px;padding:14px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:10px;">
-      <div style="font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;margin-bottom:10px;">🔍 영상 소스 수집용 검색 링크</div>
+    <div style="margin-top:14px;padding:14px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:10px;">
+      <div style="font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;margin-bottom:10px;">🔍 소스 수집용 링크</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        ${links.map(l=>`<a href="${l.url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--text);text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">${l.icon} ${l.label}</a>`).join('')}
+        ${links.map(l=>`<a href="${l.url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--text);text-decoration:none;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">${l.icon} ${l.label}</a>`).join('')}
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px;">💡 실제 제품 이미지/영상 저장 → 각 구간 업로드 탭에서 사용</div>
-    </div>
-  `;
-}
-
-// =============================================
-// Pexels / Pixabay / Gemini
-// =============================================
-async function fetchPexelsVideos(keyword, perPage = 2) {
-  const key = CONFIG.get(CONFIG.KEYS.PEXELS);
-  if (!key) return [];
-  try {
-    const res = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(keyword)}&per_page=${perPage}&orientation=portrait`, { headers: { Authorization: key } });
-    const data = await res.json();
-    return (data.videos || []).map(v => ({ id: v.id, thumb: v.image, url: v.video_files?.find(f => f.quality === 'sd')?.link || v.video_files?.[0]?.link, duration: v.duration, source: 'pexels' }));
-  } catch { return []; }
-}
-
-async function fetchPixabayVideos(keyword, perPage = 2) {
-  const key = CONFIG.get(CONFIG.KEYS.PIXABAY);
-  if (!key) return [];
-  try {
-    const res = await fetch(`https://pixabay.com/api/videos/?key=${key}&q=${encodeURIComponent(keyword)}&per_page=${perPage}&video_type=film&orientation=vertical`);
-    const data = await res.json();
-    return (data.hits || []).map(v => ({ id: v.id, thumb: v.videos?.tiny?.thumbnail || v.userImageURL, url: v.videos?.medium?.url || v.videos?.small?.url, duration: v.duration, source: 'pixabay' })).filter(v => v.url);
-  } catch { return []; }
-}
-
-async function fetchPixabayImages(keyword, perPage = 2) {
-  const key = CONFIG.get(CONFIG.KEYS.PIXABAY);
-  if (!key) return [];
-  try {
-    const res = await fetch(`https://pixabay.com/api/?key=${key}&q=${encodeURIComponent(keyword)}&per_page=${perPage}&image_type=photo&orientation=vertical&safesearch=true`);
-    const data = await res.json();
-    return (data.hits || []).map(img => ({ id: img.id, thumb: img.webformatURL, url: img.largeImageURL, source: 'pixabay_image' }));
-  } catch { return []; }
-}
-
-async function generateGeminiImage(prompt) {
-  const key = CONFIG.get(CONFIG.KEYS.GEMINI);
-  if (!key) return null;
-  try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${key}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } })
-    });
-    const data = await res.json();
-    if (data.error) { console.error('Gemini:', data.error); return null; }
-    const imgPart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-    if (!imgPart) return null;
-    return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
-  } catch(e) { console.error('Gemini 실패:', e); return null; }
-}
-
-// =============================================
-// Claude로 구간별 키워드 생성
-// =============================================
-async function generateSectionKeywords(script, sections) {
-  const claudeKey = CONFIG.get(CONFIG.KEYS.CLAUDE);
-  if (!claudeKey) return null;
-  const product  = script.product || '';
-  const analysis = script.analysis || {};
-  const desc     = sections.map(s => `${s.key}: ${s.desc}`).join('\n');
-  const prompt   = `You are a Pexels/Pixabay video search expert.
-Product: ${product}
-Main pain: ${(analysis.main_pains || [''])[0]}
-Visual scenes: ${(analysis.visual_scenes || []).join(', ')}
-
-For each section, generate 2-4 word English search keyword. Each MUST be different.
-Return ONLY raw JSON, no markdown.
-Sections:\n${desc}
-Format: {${sections.map(s => `"${s.key}":"keyword"`).join(',')}}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': claudeKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await res.json();
-    let text = data.content[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('no JSON');
-    return JSON.parse(match[0]);
-  } catch(e) {
-    console.error('키워드 생성 실패:', e);
-    const fallback = {};
-    sections.forEach(s => { fallback[s.key] = product; });
-    return fallback;
-  }
+    </div>`;
 }
 
 // =============================================
@@ -271,25 +144,22 @@ async function recommendProducts(categoryKey) {
   const claudeKey = CONFIG.get(CONFIG.KEYS.CLAUDE);
   if (!claudeKey) { showError('Claude API 키를 설정해주세요'); return null; }
   const category = CATEGORIES[categoryKey];
-  const prompt = `당신은 쿠팡파트너스 전문가입니다.
-카테고리: ${category.name} (${category.emoji})
-이 카테고리에서 쿠팡파트너스로 수익을 내기 좋은 상품 10개를 추천해주세요.
+  const prompt = `당신은 쿠팡파트너스 전문가입니다. 카테고리: ${category.name}
+이 카테고리에서 쿠팡파트너스 수익화에 좋은 상품 10개를 추천해주세요.
 선정 기준: 실제 쿠팡 판매 상품, 리뷰 1000개 이상, 가격 1~10만원, 쇼츠 영상으로 만들기 좋은 시각적 상품
 반드시 아래 JSON 형식으로만 응답:
 {"products":[{"rank":1,"name":"상품명","price_range":"가격대","why":"추천 이유 한 줄","pain_or_wow":"pain 또는 wow","search_keyword":"쿠팡 검색 키워드"}]}`;
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': claudeKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
+      headers: { 'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2000, messages:[{role:'user',content:prompt}] })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-    const text = data.content[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('JSON 파싱 실패');
-    return JSON.parse(match[0]);
-  } catch(err) { showError('상품 추천 실패: ' + err.message); return null; }
+    const text = data.content[0].text.replace(/```json/gi,'').replace(/```/g,'').trim();
+    return JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+  } catch(e) { showError('상품 추천 실패: '+e.message); return null; }
 }
 
 // =============================================
@@ -304,32 +174,27 @@ async function analyzeProduct(url, productName) {
       const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
       const data = await res.json();
       if (data.contents) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(data.contents, 'text/html');
-        ['script','style','nav','header','footer'].forEach(tag => doc.querySelectorAll(tag).forEach(el => el.remove()));
+        const doc = new DOMParser().parseFromString(data.contents, 'text/html');
+        ['script','style','nav','header','footer'].forEach(t => doc.querySelectorAll(t).forEach(e => e.remove()));
         pageContent = doc.body?.innerText?.slice(0, 3000) || '';
       }
     } catch(e) { console.log('페이지 로드 실패'); }
   }
   const prompt = `당신은 쿠팡파트너스 마케팅 전문가입니다.
-상품명: ${productName}
-${url ? `쿠팡 URL: ${url}` : ''}
-${pageContent ? `페이지 내용:\n${pageContent}` : ''}
+상품명: ${productName}${url?`\n쿠팡 URL: ${url}`:''}${pageContent?`\n페이지 내용:\n${pageContent}`:''}
 반드시 아래 JSON 형식으로만 응답:
-{"product_name":"정확한 상품명","core_function":"핵심 기능 한 줄","key_specs":["스펙1","스펙2","스펙3"],"target_customer":"주요 타겟 고객층","main_pains":["불편함1","불편함2","불편함3"],"wow_points":["놀라운 점1","놀라운 점2"],"hook_keywords":["키워드1","키워드2","키워드3"],"recommended_type":"pain 또는 wow","price_appeal":"가격 매력 포인트","visual_scenes":["장면1","장면2","장면3"]}`;
+{"product_name":"상품명","core_function":"핵심 기능 한 줄","key_specs":["스펙1","스펙2","스펙3"],"target_customer":"타겟 고객층","main_pains":["불편함1","불편함2","불편함3"],"wow_points":["놀라운 점1","놀라운 점2"],"hook_keywords":["키워드1","키워드2","키워드3"],"recommended_type":"pain 또는 wow","price_appeal":"가격 매력 포인트","visual_scenes":["장면1","장면2","장면3"]}`;
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': claudeKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+      headers: { 'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1500, messages:[{role:'user',content:prompt}] })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-    const text = data.content[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('JSON 파싱 실패');
-    return JSON.parse(match[0]);
-  } catch(err) { showError('상품 분석 실패: ' + err.message); return null; }
+    const text = data.content[0].text.replace(/```json/gi,'').replace(/```/g,'').trim();
+    return JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+  } catch(e) { showError('상품 분석 실패: '+e.message); return null; }
 }
 
 // =============================================
@@ -339,83 +204,63 @@ async function generateScriptFromAnalysis(analysis, categoryKey, coupangLink) {
   const claudeKey = CONFIG.get(CONFIG.KEYS.CLAUDE);
   if (!claudeKey) { showError('Claude API 키를 설정해주세요'); return null; }
   const category = CATEGORIES[categoryKey];
-  const isPain = analysis.recommended_type !== 'wow';
-  const prompt = isPain ? buildPainPromptV2(analysis, category, coupangLink) : buildWowPromptV2(analysis, category, coupangLink);
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': claudeKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const text = data.content[0].text.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('JSON 파싱 실패');
-    const script = JSON.parse(match[0]);
-    script.product     = analysis.product_name;
-    script.category    = category;
-    script.coupangLink = coupangLink;
-    script.type        = isPain ? 'pain' : 'wow';
-    script.analysis    = analysis;
-    script.createdAt   = new Date().toISOString();
-    return script;
-  } catch(err) { showError('스크립트 생성 실패: ' + err.message); return null; }
-}
+  const isPain   = analysis.recommended_type !== 'wow';
+  const link     = coupangLink || '[쿠팡파트너스 링크 입력]';
 
-function buildPainPromptV2(analysis, category, link) {
-  return `당신은 대한민국 최고의 쇼츠/릴스 마케팅 카피라이터입니다.
+  const base = `당신은 대한민국 최고의 쇼츠/릴스 마케팅 카피라이터입니다.
 [상품 분석 데이터]
 상품명: ${analysis.product_name}
 핵심 기능: ${analysis.core_function}
 주요 스펙: ${analysis.key_specs?.join(', ')}
 타겟 고객: ${analysis.target_customer}
-주요 PAIN: ${analysis.main_pains?.join(' / ')}
+PAIN: ${analysis.main_pains?.join(' / ')}
+WOW: ${analysis.wow_points?.join(' / ')}
 후킹 키워드: ${analysis.hook_keywords?.join(', ')}
 가격 매력: ${analysis.price_appeal}
 시각 장면: ${analysis.visual_scenes?.join(' / ')}
 
-절대 금지: 시간대 표현, 막연한 표현, 광고 티, 첫 문장 상품명, JSON 외 텍스트
+절대 금지: 시간대 표현, 막연한 표현, 광고 티, 첫 문장 상품명, JSON 외 텍스트`;
 
-반드시 아래 JSON 형식으로만 응답:
-{"pain_selected":"선택한 PAIN 한 줄","opening":"후킹 질문 (20자 이내, 구체적 상황, 상품명 금지, ?로 끝)","empathy":"공감 2~3문장 (짧고 강렬)","solution":"해결 3~4문장 (상품명 1회, 스펙/수치 포함)","cta":"행동 유도 1~2문장 (긴박감)","hashtags":["태그1","태그2","태그3","태그4","태그5"],"youtube_title":"제목 (30자 이내, 숫자/반전)","description":"설명란\\n\\n파트너스 링크: ${link || '[쿠팡파트너스 링크 입력]'}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."}`;
-}
+  const prompt = isPain
+    ? `${base}\n반드시 아래 JSON으로만 응답:\n{"pain_selected":"선택한 PAIN","opening":"후킹 질문 20자 이내 ?로 끝","empathy":"공감 2~3문장 짧고 강렬","solution":"해결 3~4문장 상품명1회 수치포함","cta":"행동유도 1~2문장","hashtags":["태그1","태그2","태그3","태그4","태그5"],"youtube_title":"제목 30자 이내","description":"설명란\\n\\n파트너스 링크: ${link}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."}`
+    : `${base}\n반드시 아래 JSON으로만 응답:\n{"wow_selected":"선택한 WOW","opening":"호기심 오프닝 20자 이내 ?로 끝","proof":"증명 2~3문장 수치/스펙/비교","usage":"활용 2~3문장 구체적 장면","cta":"행동유도 1~2문장","hashtags":["태그1","태그2","태그3","태그4","태그5"],"youtube_title":"제목 30자 이내","description":"설명란\\n\\n파트너스 링크: ${link}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."}`;
 
-function buildWowPromptV2(analysis, category, link) {
-  return `당신은 대한민국 최고의 쇼츠/릴스 마케팅 카피라이터입니다.
-[상품 분석 데이터]
-상품명: ${analysis.product_name}
-핵심 기능: ${analysis.core_function}
-WOW 포인트: ${analysis.wow_points?.join(' / ')}
-후킹 키워드: ${analysis.hook_keywords?.join(', ')}
-가격 매력: ${analysis.price_appeal}
-시각 장면: ${analysis.visual_scenes?.join(' / ')}
-
-절대 금지: 오프닝 상품명 언급, 뻔한 리뷰, JSON 외 텍스트
-
-반드시 아래 JSON 형식으로만 응답:
-{"wow_selected":"선택한 WOW 포인트","opening":"호기심 오프닝 (20자 이내, 반전/충격, 상품명 금지, ?로 끝)","proof":"증명 2~3문장 (수치/스펙/비교)","usage":"활용 2~3문장 (구체적 장면)","cta":"행동 유도 1~2문장 (긴박감)","hashtags":["태그1","태그2","태그3","태그4","태그5"],"youtube_title":"제목 (30자 이내, 숫자/반전)","description":"설명란\\n\\n파트너스 링크: ${link || '[쿠팡파트너스 링크 입력]'}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1500, messages:[{role:'user',content:prompt}] })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content[0].text.replace(/```json/gi,'').replace(/```/g,'').trim();
+    const script = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+    script.product=analysis.product_name; script.category=category;
+    script.coupangLink=coupangLink; script.type=isPain?'pain':'wow';
+    script.analysis=analysis; script.createdAt=new Date().toISOString();
+    return script;
+  } catch(e) { showError('스크립트 생성 실패: '+e.message); return null; }
 }
 
 // =============================================
 // 히스토리 / UI 유틸
 // =============================================
 function saveToHistory(script) {
-  const history = JSON.parse(localStorage.getItem('script_history') || '[]');
-  history.unshift(script);
-  localStorage.setItem('script_history', JSON.stringify(history.slice(0, 100)));
+  const h = JSON.parse(localStorage.getItem('script_history')||'[]');
+  h.unshift(script);
+  localStorage.setItem('script_history', JSON.stringify(h.slice(0,100)));
 }
-function loadHistory() { return JSON.parse(localStorage.getItem('script_history') || '[]'); }
+function loadHistory() { return JSON.parse(localStorage.getItem('script_history')||'[]'); }
 function showError(msg) {
   const el = document.getElementById('notification');
   if (!el) return;
-  el.textContent = '❌ ' + msg; el.className = 'notification error show';
-  setTimeout(() => el.classList.remove('show'), 4000);
+  el.textContent='❌ '+msg; el.className='notification error show';
+  setTimeout(()=>el.classList.remove('show'),4000);
 }
 function showSuccess(msg) {
   const el = document.getElementById('notification');
   if (!el) return;
-  el.textContent = '✅ ' + msg; el.className = 'notification success show';
-  setTimeout(() => el.classList.remove('show'), 3000);
+  el.textContent='✅ '+msg; el.className='notification success show';
+  setTimeout(()=>el.classList.remove('show'),3000);
 }
-function copyToClipboard(text) { navigator.clipboard.writeText(text); showSuccess('클립보드에 복사됐습니다'); }
+function copyToClipboard(text) { navigator.clipboard.writeText(text); showSuccess('복사됐습니다'); }
