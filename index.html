@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>니치 쇼츠 자동화 v2.1</title>
+<title>니치 쇼츠 자동화 v2.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c28;--border:#2a2a3d;--accent:#7c3aed;--accent2:#06b6d4;--accent3:#f59e0b;--text:#e8e8f0;--muted:#6b7280;--success:#10b981;--danger:#ef4444;}
@@ -92,16 +92,13 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .empty-text{font-size:13px;}
 input[type=range]{accent-color:var(--accent);}
 .product-card{display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;cursor:pointer;transition:all .15s;}
-.product-card:hover{border-color:var(--accent);background:rgba(124,58,237,.05);}
+.product-card:hover{border-color:var(--accent);}
 .product-card.selected{border-color:var(--accent);background:rgba(124,58,237,.1);}
 .product-rank{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);min-width:32px;}
 .product-info{flex:1;}
 .product-name{font-size:14px;font-weight:700;margin-bottom:4px;}
 .product-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
 .product-why{font-size:12px;color:var(--accent2);}
-.product-type{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Space Mono',monospace;}
-.type-pain{background:rgba(124,58,237,.15);color:var(--accent);}
-.type-wow{background:rgba(245,158,11,.15);color:var(--accent3);}
 .analysis-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;}
 .analysis-row{display:flex;gap:8px;margin-bottom:10px;font-size:13px;}
 .analysis-key{color:var(--accent2);font-family:'Space Mono',monospace;font-size:11px;min-width:90px;margin-top:2px;}
@@ -118,11 +115,23 @@ input[type=range]{accent-color:var(--accent);}
 .script-text{font-size:14px;line-height:1.8;}
 .tag-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .tag{font-size:11px;padding:2px 10px;border-radius:20px;background:rgba(124,58,237,.15);color:var(--accent);border:1px solid rgba(124,58,237,.3);}
-.source-section{margin-bottom:16px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);}
-.source-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.source-section-title{font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.08em;}
-.source-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
-.source-tab{padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Space Mono',monospace;transition:all .15s;}
+
+/* 미디어 그리드 */
+.media-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+.media-thumb{position:relative;border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:all .15s;aspect-ratio:1;}
+.media-thumb img{width:100%;height:100%;object-fit:cover;}
+.media-thumb:hover{border-color:var(--accent);}
+.media-thumb.selected{border-color:var(--accent);box-shadow:0 0 10px rgba(124,58,237,.5);}
+.media-thumb-type{position:absolute;top:4px;left:4px;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;font-family:'Space Mono',monospace;}
+.media-thumb-video{background:rgba(6,182,212,.85);color:#fff;}
+.media-thumb-img{background:rgba(16,185,129,.85);color:#fff;}
+
+/* 소스 섹션 */
+.source-section{margin-bottom:12px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);}
+.source-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.source-section-title{font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;text-transform:uppercase;}
+.source-tabs{display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;}
+.source-tab{padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Space Mono',monospace;transition:all .15s;}
 .source-tab:hover{border-color:var(--accent);color:var(--accent);}
 .source-tab.active{background:rgba(124,58,237,.15);border-color:var(--accent);color:var(--accent);}
 .source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
@@ -132,12 +141,14 @@ input[type=range]{accent-color:var(--accent);}
 .source-card img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;}
 .source-card-label{position:absolute;bottom:0;left:0;right:0;padding:3px 6px;background:rgba(0,0,0,.75);font-size:9px;color:#fff;font-family:'Space Mono',monospace;}
 .source-card-type{position:absolute;top:4px;left:4px;padding:2px 5px;border-radius:3px;font-size:8px;font-family:'Space Mono',monospace;font-weight:700;}
-.type-upload{background:rgba(16,185,129,.85);color:#fff;}
+.type-product{background:rgba(16,185,129,.9);color:#fff;}
 .type-ai{background:rgba(124,58,237,.85);color:#fff;}
 .type-video{background:rgba(6,182,212,.85);color:#fff;}
-.upload-zone{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;}
+.upload-zone{border:2px dashed var(--border);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all .15s;}
 .upload-zone:hover{border-color:var(--accent);background:rgba(124,58,237,.05);}
 .upload-zone.drag-over{border-color:var(--accent);background:rgba(124,58,237,.1);}
+
+/* 렌더링 */
 .render-step{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);}
 .render-step-icon{font-size:20px;min-width:28px;text-align:center;}
 .render-step-text{flex:1;}
@@ -155,7 +166,7 @@ input[type=range]{accent-color:var(--accent);}
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-main">NICHE.AUTO</div>
-      <div class="logo-sub">쿠팡파트너스 쇼츠 v2.2</div>
+      <div class="logo-sub">쿠팡파트너스 쇼츠 v2.5</div>
     </div>
     <nav class="nav">
       <div class="nav-label">메인</div>
@@ -196,21 +207,21 @@ input[type=range]{accent-color:var(--accent);}
           <div class="stat-card g"><div class="stat-label">생성된 영상</div><div class="stat-value" id="s-videos">0</div></div>
         </div>
         <div class="card">
-          <div class="card-title">⚡ v2.1 파이프라인</div>
+          <div class="card-title">⚡ v2.5 파이프라인</div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <div onclick="go('products',document.querySelectorAll('.nav-item')[1])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(245,158,11,.3);">
               <div style="font-size:22px;">1️⃣</div>
-              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">🛍️ 상품 탐색</div><div style="font-size:11px;color:var(--muted);">AI 추천 → 분석 → 알리/타오바오 소스 링크</div></div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">🛍️ 상품 탐색</div><div style="font-size:11px;color:var(--muted);">AI 추천 → 쿠팡 상세페이지 분석 → 실제 이미지/영상 자동 추출</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
             <div onclick="go('script',document.querySelectorAll('.nav-item')[2])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(124,58,237,.3);">
               <div style="font-size:22px;">2️⃣</div>
-              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">✍️ 스크립트 생성</div><div style="font-size:11px;color:var(--muted);">상품 분석 데이터 기반 → 실제 스펙/리뷰 반영</div></div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">✍️ 스크립트 생성</div><div style="font-size:11px;color:var(--muted);">상품 분석 데이터 기반 PAIN/WOW 스크립트</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
             <div onclick="go('sources',document.querySelectorAll('.nav-item')[3])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(16,185,129,.3);">
               <div style="font-size:22px;">3️⃣</div>
-              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">🎬 영상 소스 수집 (10구간)</div><div style="font-size:11px;color:var(--muted);">직접 업로드 + Gemini AI + Pexels + Pixabay</div></div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">🎬 영상 소스 수집 (10구간)</div><div style="font-size:11px;color:var(--muted);">실제 제품 이미지/영상 우선 → Gemini AI 보조</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
             <div onclick="go('render',document.querySelectorAll('.nav-item')[4])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(6,182,212,.3);">
@@ -237,13 +248,31 @@ input[type=range]{accent-color:var(--accent);}
           </div>
           <div id="productList"></div>
         </div>
+
+        <!-- 분석 패널 -->
         <div class="card" id="analyzePanel" style="display:none;">
-          <div class="card-title">🔍 상품 상세 분석</div>
+          <div class="card-title">🔍 상품 상세 분석 + 미디어 추출</div>
           <div id="selectedProductInfo" style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:16px;"></div>
+
           <div class="form-group">
-            <label class="form-label">쿠팡 상품 URL (선택)</label>
-            <input type="text" class="form-input" id="inp-coupang-url" placeholder="https://www.coupang.com/vp/products/...">
+            <label class="form-label">쿠팡 상품 URL <span style="color:var(--success);">★ 입력 시 실제 이미지/영상 자동 추출</span></label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" class="form-input" id="inp-coupang-url" placeholder="https://www.coupang.com/vp/products/...">
+              <button class="btn btn-secondary btn-sm" onclick="onExtractMedia()" id="extractBtn">📸 추출</button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px;">URL 입력 후 추출 버튼 클릭 → 실제 제품 이미지/영상 자동 수집</div>
           </div>
+
+          <!-- 추출된 미디어 미리보기 -->
+          <div id="extractedMediaPanel" style="display:none;margin-bottom:16px;">
+            <div style="font-size:12px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ 추출된 제품 미디어</div>
+            <div style="display:flex;gap:16px;margin-bottom:10px;">
+              <div style="font-size:12px;color:var(--muted);">🎬 영상: <span id="extractedVideoCount" style="color:var(--accent2);font-weight:700;">0</span>개</div>
+              <div style="font-size:12px;color:var(--muted);">🖼️ 이미지: <span id="extractedImageCount" style="color:var(--success);font-weight:700;">0</span>개</div>
+            </div>
+            <div class="media-grid" id="extractedMediaGrid"></div>
+          </div>
+
           <div class="form-group">
             <label class="form-label">쿠팡파트너스 링크 (수동 입력)</label>
             <div style="display:flex;gap:8px;">
@@ -251,7 +280,8 @@ input[type=range]{accent-color:var(--accent);}
               <a href="https://partners.coupang.com" target="_blank" class="btn btn-secondary btn-sm" style="white-space:nowrap;">파트너스 →</a>
             </div>
           </div>
-          <button class="btn btn-primary" id="analyzeBtn" onclick="onAnalyze()">🔍 분석 시작</button>
+
+          <button class="btn btn-primary" id="analyzeBtn" onclick="onAnalyze()">🔍 AI 분석 시작</button>
           <div id="analyzeLoading" style="display:none;text-align:center;padding:20px;">
             <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
             <div style="font-size:12px;color:var(--muted);margin-top:8px;">상품 분석 중...</div>
@@ -269,9 +299,7 @@ input[type=range]{accent-color:var(--accent);}
               <div class="card-title">✍️ 스크립트 생성</div>
               <div id="scriptProductInfo" style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-size:13px;color:var(--muted);">먼저 상품 탐색에서 상품을 분석해주세요.</div>
               <div id="manualInputSection">
-                <div style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:10px;background:rgba(245,158,11,.05);border-radius:8px;border:1px solid rgba(245,158,11,.2);">
-                  💡 상품 탐색을 건너뛰고 싶다면 아래에 직접 입력하세요.
-                </div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:10px;background:rgba(245,158,11,.05);border-radius:8px;border:1px solid rgba(245,158,11,.2);">💡 직접 입력하려면 아래에 정보를 입력하세요.</div>
                 <div class="form-group">
                   <label class="form-label">카테고리</label>
                   <div class="cat-grid" id="catGridScript"></div>
@@ -313,13 +341,21 @@ input[type=range]{accent-color:var(--accent);}
       <div class="page" id="page-sources">
         <div class="card">
           <div class="card-title">🎬 영상 소스 수집 <span style="font-size:11px;color:var(--accent2);font-family:'Space Mono',monospace;">10구간</span></div>
-          <div id="sourceScriptInfo" style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-size:13px;color:var(--muted);">먼저 스크립트를 생성해주세요.</div>
-          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;font-size:11px;"><span>📁</span><span style="color:var(--success);">직접 업로드</span></div>
-            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.3);border-radius:8px;font-size:11px;"><span>🤖</span><span style="color:var(--accent);">Gemini AI</span></div>
-            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.3);border-radius:8px;font-size:11px;"><span>🎬</span><span style="color:var(--accent2);">Pexels</span></div>
-            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;font-size:11px;"><span>🖼️</span><span style="color:var(--accent3);">Pixabay</span></div>
+
+          <!-- 제품 소스 현황 -->
+          <div id="productSourceStatus" style="padding:14px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:8px;margin-bottom:16px;display:none;">
+            <div style="font-size:12px;font-weight:700;color:var(--success);margin-bottom:6px;">✅ 실제 제품 소스 준비됨</div>
+            <div id="productSourceInfo" style="font-size:12px;color:var(--muted);"></div>
           </div>
+
+          <div id="sourceScriptInfo" style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-size:13px;color:var(--muted);">먼저 스크립트를 생성해주세요.</div>
+
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;font-size:11px;"><span>🏪</span><span style="color:var(--success);">실제 제품 소스 우선</span></div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.3);border-radius:8px;font-size:11px;"><span>🤖</span><span style="color:var(--accent);">Gemini AI 보조</span></div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.3);border-radius:8px;font-size:11px;"><span>📁</span><span style="color:var(--accent2);">직접 업로드</span></div>
+          </div>
+
           <button class="btn btn-primary" id="collectBtn" onclick="onCollectSources()" disabled>🔍 소스 자동 수집 (10구간)</button>
           <div id="collectLoading" style="display:none;text-align:center;margin-top:20px;padding:20px;">
             <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
@@ -342,6 +378,10 @@ input[type=range]{accent-color:var(--accent);}
               <div id="ready-token-icon" style="font-size:16px;">⬜</div>
               <div style="font-size:13px;" id="ready-token-text">GitHub 토큰 미설정</div>
             </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+              <div id="ready-media-icon" style="font-size:16px;">⬜</div>
+              <div style="font-size:13px;" id="ready-media-text">제품 소스 없음 (Gemini AI로 대체)</div>
+            </div>
           </div>
           <button class="btn btn-primary" id="renderBtn" onclick="onStartRender()" disabled style="width:100%;padding:14px;font-size:15px;">🎬 영상 생성 시작</button>
           <div id="renderProgress" style="display:none;margin-top:24px;">
@@ -350,8 +390,8 @@ input[type=range]{accent-color:var(--accent);}
             <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
               <div class="render-step waiting" id="step-trigger"><div class="render-step-icon">📡</div><div class="render-step-text"><div class="render-step-title">GitHub Actions 트리거</div><div class="render-step-desc">렌더링 워크플로우 실행</div></div></div>
               <div class="render-step waiting" id="step-tts"><div class="render-step-icon">🎙️</div><div class="render-step-text"><div class="render-step-title">TTS 음성 생성</div><div class="render-step-desc">나레이션 자동 생성</div></div></div>
-              <div class="render-step waiting" id="step-download"><div class="render-step-icon">📥</div><div class="render-step-text"><div class="render-step-title">소스 수집 (10구간)</div><div class="render-step-desc">Gemini AI 이미지 × 10 생성</div></div></div>
-              <div class="render-step waiting" id="step-ffmpeg"><div class="render-step-icon">🎬</div><div class="render-step-text"><div class="render-step-title">FFmpeg 합성</div><div class="render-step-desc">빠른 컷 전환 · 대형 자막</div></div></div>
+              <div class="render-step waiting" id="step-download"><div class="render-step-icon">📥</div><div class="render-step-text"><div class="render-step-title">실제 제품 소스 배치</div><div class="render-step-desc">쿠팡 이미지/영상 다운로드 + AI 보조</div></div></div>
+              <div class="render-step waiting" id="step-ffmpeg"><div class="render-step-icon">🎬</div><div class="render-step-text"><div class="render-step-title">FFmpeg 합성</div><div class="render-step-desc">빠른 컷 전환 · 대형 자막 · 컬러</div></div></div>
               <div class="render-step waiting" id="step-complete"><div class="render-step-icon">✅</div><div class="render-step-text"><div class="render-step-title">완성</div><div class="render-step-desc">다운로드 준비 완료</div></div></div>
             </div>
           </div>
@@ -447,6 +487,7 @@ let currentScript       = null;
 let currentAnalysis     = null;
 let currentProduct      = null;
 let collectedSources    = {};
+let extractedMedia      = { videos: [], images: [] }; // 쿠팡에서 추출한 실제 제품 소스
 let pollTimer  = null;
 let stepTimers = [];
 
@@ -467,10 +508,7 @@ function go(page, el) {
 }
 
 function renderCatGridProducts(){
-  document.getElementById('catGridProducts').innerHTML = Object.entries(CATEGORIES).map(([key,cat])=>`
-    <div class="cat-card" id="catp-${key}" onclick="selectCatProducts('${key}')">
-      <div class="cat-emoji">${cat.emoji}</div><div class="cat-name">${cat.name}</div>
-    </div>`).join('');
+  document.getElementById('catGridProducts').innerHTML = Object.entries(CATEGORIES).map(([key,cat])=>`<div class="cat-card" id="catp-${key}" onclick="selectCatProducts('${key}')"><div class="cat-emoji">${cat.emoji}</div><div class="cat-name">${cat.name}</div></div>`).join('');
 }
 function selectCatProducts(key){
   document.querySelectorAll('#catGridProducts .cat-card').forEach(c=>c.classList.remove('selected'));
@@ -479,10 +517,7 @@ function selectCatProducts(key){
   document.getElementById('recommendBtn').disabled=false;
 }
 function renderCatGridScript(){
-  document.getElementById('catGridScript').innerHTML = Object.entries(CATEGORIES).map(([key,cat])=>`
-    <div class="cat-card" id="cats-${key}" onclick="selectCatScript('${key}')">
-      <div class="cat-emoji">${cat.emoji}</div><div class="cat-name">${cat.name}</div>
-    </div>`).join('');
+  document.getElementById('catGridScript').innerHTML = Object.entries(CATEGORIES).map(([key,cat])=>`<div class="cat-card" id="cats-${key}" onclick="selectCatScript('${key}')"><div class="cat-emoji">${cat.emoji}</div><div class="cat-name">${cat.name}</div></div>`).join('');
 }
 function selectCatScript(key){
   document.querySelectorAll('#catGridScript .cat-card').forEach(c=>c.classList.remove('selected'));
@@ -509,15 +544,8 @@ function renderProductList(products){
   container.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">👆 상품을 클릭해서 분석을 시작하세요</div>`;
   products.forEach(p=>{
     const div = document.createElement('div');
-    div.className='product-card'; div.id=`prod-${p.rank}`;
-    div.innerHTML=`
-      <div class="product-rank">${p.rank}</div>
-      <div class="product-info">
-        <div class="product-name">${p.name}</div>
-        <div class="product-meta"><span>💰 ${p.price_range}</span><span>🔍 "${p.search_keyword}"</span><span class="product-type ${p.pain_or_wow==='wow'?'type-wow':'type-pain'}">${p.pain_or_wow==='wow'?'✨ WOW':'⚡ PAIN'}</span></div>
-        <div class="product-why">💡 ${p.why}</div>
-      </div>
-      <div style="color:var(--accent);font-size:18px;">→</div>`;
+    div.className='product-card';div.id=`prod-${p.rank}`;
+    div.innerHTML=`<div class="product-rank">${p.rank}</div><div class="product-info"><div class="product-name">${p.name}</div><div class="product-meta"><span>💰 ${p.price_range}</span><span>🔍 "${p.search_keyword}"</span></div><div class="product-why">💡 ${p.why}</div></div><div style="color:var(--accent);font-size:18px;">→</div>`;
     div.onclick=()=>selectProduct(p);
     container.appendChild(div);
   });
@@ -527,14 +555,60 @@ function selectProduct(p){
   document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById(`prod-${p.rank}`).classList.add('selected');
   currentProduct=p;
+  extractedMedia={videos:[],images:[]};
   document.getElementById('analyzePanel').style.display='block';
-  document.getElementById('selectedProductInfo').innerHTML=`
-    <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${p.name}</div>
-    <div style="font-size:12px;color:var(--muted);">💰 ${p.price_range} · 🔍 "${p.search_keyword}"</div>
-    <div style="font-size:12px;color:var(--accent2);margin-top:4px;">💡 ${p.why}</div>`;
+  document.getElementById('selectedProductInfo').innerHTML=`<div style="font-weight:700;font-size:14px;margin-bottom:4px;">${p.name}</div><div style="font-size:12px;color:var(--muted);">💰 ${p.price_range} · 💡 ${p.why}</div>`;
   document.getElementById('analysisResult').innerHTML='';
   document.getElementById('sourceSearchLinks').innerHTML='';
+  document.getElementById('extractedMediaPanel').style.display='none';
+  document.getElementById('inp-coupang-url').value='';
   document.getElementById('analyzePanel').scrollIntoView({behavior:'smooth'});
+}
+
+// ===== 쿠팡 미디어 추출 =====
+async function onExtractMedia(){
+  const url = document.getElementById('inp-coupang-url').value.trim();
+  if (!url){showError('쿠팡 URL을 먼저 입력해주세요');return;}
+
+  const btn = document.getElementById('extractBtn');
+  btn.disabled=true;btn.textContent='⏳ 추출중...';
+
+  showSuccess('쿠팡 페이지에서 미디어 추출 중...');
+  const result = await extractCoupangMedia(url);
+  extractedMedia = result;
+
+  btn.disabled=false;btn.textContent='📸 추출';
+
+  const totalMedia = result.videos.length + result.images.length;
+  if (totalMedia === 0){
+    showError('미디어 추출 실패. URL을 확인하거나 직접 업로드를 사용하세요.');
+    return;
+  }
+
+  // 미리보기 표시
+  document.getElementById('extractedVideoCount').textContent = result.videos.length;
+  document.getElementById('extractedImageCount').textContent = result.images.length;
+  document.getElementById('extractedMediaPanel').style.display='block';
+
+  const grid = document.getElementById('extractedMediaGrid');
+  grid.innerHTML='';
+
+  // 영상 썸네일
+  result.videos.slice(0,4).forEach((v,i)=>{
+    const div=document.createElement('div');div.className='media-thumb';
+    if (v.thumb){div.innerHTML=`<img src="${v.thumb}" alt="영상 ${i+1}"><div class="media-thumb-type media-thumb-video">🎬 영상</div>`;}
+    else{div.innerHTML=`<div style="width:100%;height:100%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:24px;border-radius:8px;">🎬</div><div class="media-thumb-type media-thumb-video">영상</div>`;}
+    grid.appendChild(div);
+  });
+
+  // 이미지 썸네일
+  result.images.slice(0,8).forEach((img,i)=>{
+    const div=document.createElement('div');div.className='media-thumb';
+    div.innerHTML=`<img src="${img.thumb}" alt="이미지 ${i+1}" onerror="this.style.display='none'"><div class="media-thumb-type media-thumb-img">🖼️ 이미지</div>`;
+    grid.appendChild(div);
+  });
+
+  showSuccess(`추출 완료! 영상 ${result.videos.length}개, 이미지 ${result.images.length}개`);
 }
 
 // ===== 상품 분석 =====
@@ -545,20 +619,34 @@ async function onAnalyze(){
   document.getElementById('analyzeBtn').disabled=true;
   document.getElementById('analyzeLoading').style.display='block';
   document.getElementById('analysisResult').innerHTML='';
-  document.getElementById('sourceSearchLinks').innerHTML='';
+
+  // 미디어가 아직 추출 안 됐으면 자동 추출
+  if (url && extractedMedia.videos.length===0 && extractedMedia.images.length===0){
+    const result = await extractCoupangMedia(url);
+    extractedMedia = result;
+    if (result.videos.length+result.images.length > 0){
+      document.getElementById('extractedVideoCount').textContent=result.videos.length;
+      document.getElementById('extractedImageCount').textContent=result.images.length;
+      document.getElementById('extractedMediaPanel').style.display='block';
+    }
+  }
+
   const analysis = await analyzeProduct(url, currentProduct.name);
   document.getElementById('analyzeLoading').style.display='none';
   document.getElementById('analyzeBtn').disabled=false;
   if (!analysis) return;
+
   currentAnalysis=analysis;
   currentAnalysis.coupangLink=link;
   currentAnalysis.categoryKey=selectedCatProducts;
+  currentAnalysis.extractedMedia=extractedMedia;
+
   renderAnalysisResult(analysis);
-  showSuccess('분석 완료! 스크립트 생성으로 이동하세요.');
+  showSuccess('분석 완료!');
 }
 
 function renderAnalysisResult(a){
-  const el = document.getElementById('analysisResult');
+  const el=document.getElementById('analysisResult');
   el.innerHTML=`
     <div class="analysis-block" style="margin-top:16px;">
       <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:14px;">✅ 분석 완료</div>
@@ -575,14 +663,14 @@ function renderAnalysisResult(a){
   renderSourceSearchLinks(a.product_name, 'sourceSearchLinks');
 }
 
-// ===== 스크립트 페이지 =====
+// ===== 스크립트 =====
 function updateScriptPageInfo(){
   const info=document.getElementById('scriptProductInfo');
   if (currentAnalysis){
     info.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;"><div><div style="font-weight:700;color:var(--text);">${currentAnalysis.product_name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${currentAnalysis.core_function}</div></div><span class="badge ${currentAnalysis.recommended_type==='wow'?'badge-wow':'badge-pain'}">${currentAnalysis.recommended_type==='wow'?'✨ WOW형':'⚡ PAIN형'}</span></div>`;
     info.style.borderColor='rgba(16,185,129,.4)';
     document.getElementById('manualInputSection').style.display='none';
-  } else {
+  }else{
     info.textContent='상품 탐색에서 분석하거나 아래에 직접 입력하세요.';
     info.style.borderColor='var(--border)';
     document.getElementById('manualInputSection').style.display='block';
@@ -591,16 +679,14 @@ function updateScriptPageInfo(){
 
 async function onGenerateScript(){
   const btn=document.getElementById('genScriptBtn');
-  btn.disabled=true;
-  document.getElementById('genLoading').style.display='block';
-  document.getElementById('scriptOut').innerHTML='';
-  document.getElementById('scriptActions').style.display='none';
+  btn.disabled=true;document.getElementById('genLoading').style.display='block';
+  document.getElementById('scriptOut').innerHTML='';document.getElementById('scriptActions').style.display='none';
   let script=null;
   if (currentAnalysis){
     document.getElementById('genStatus').textContent='분석 데이터 기반 스크립트 생성 중...';
     const link=document.getElementById('inp-partners-link')?.value?.trim()||currentAnalysis.coupangLink||'';
     script=await generateScriptFromAnalysis(currentAnalysis,currentAnalysis.categoryKey||selectedCatScript||'pet',link);
-  } else {
+  }else{
     const product=document.getElementById('inp-product-manual').value.trim();
     const link=document.getElementById('inp-link-manual').value.trim();
     if (!product){showError('상품명을 입력해주세요');btn.disabled=false;document.getElementById('genLoading').style.display='none';return;}
@@ -609,20 +695,17 @@ async function onGenerateScript(){
     const analysis=await analyzeProduct('',product);
     if (analysis){document.getElementById('genStatus').textContent='스크립트 생성 중...';script=await generateScriptFromAnalysis(analysis,selectedCatScript,link);}
   }
-  btn.disabled=false;
-  document.getElementById('genLoading').style.display='none';
+  btn.disabled=false;document.getElementById('genLoading').style.display='none';
   if (!script) return;
   currentScript=script;
-  renderScript(script);
-  saveToHistory(script);
-  updateStats();
+  renderScript(script);saveToHistory(script);updateStats();
   showSuccess('스크립트 생성 완료!');
 }
 
 function renderScript(s){
   const isWow=s.type==='wow';
   let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span class="badge ${isWow?'badge-wow':'badge-pain'}">${isWow?'✨ WOW형':'⚡ PAIN형'}</span><span style="font-size:12px;color:var(--muted);">${s.category.emoji} ${s.category.name}</span></div><div class="script-block">`;
-  if (isWow){html+=sec('💡 WOW 포인트',s.wow_selected);html+=sec('⚡ 오프닝',s.opening,'극빠름');html+=sec('🔍 증명',s.proof,'느린 컷');html+=sec('🎯 활용',s.usage,'보통');}
+  if(isWow){html+=sec('💡 WOW 포인트',s.wow_selected);html+=sec('⚡ 오프닝',s.opening,'극빠름');html+=sec('🔍 증명',s.proof,'느린 컷');html+=sec('🎯 활용',s.usage,'보통');}
   else{html+=sec('💡 선택된 PAIN',s.pain_selected);html+=sec('⚡ 오프닝',s.opening,'극빠름');html+=sec('💭 공감',s.empathy,'보통');html+=sec('✅ 해결',s.solution,'변화');}
   html+=sec('🔗 CTA',s.cta,'빠른');
   html+=`<div class="script-section"><div class="script-label">🏷️ 해시태그</div><div class="tag-wrap">${(s.hashtags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div></div>
@@ -640,16 +723,28 @@ function sec(label,text,timing){return `<div class="script-section"><div class="
 // ===== 소스 수집 =====
 function updateSourcePageInfo(){
   const info=document.getElementById('sourceScriptInfo');const btn=document.getElementById('collectBtn');
-  if (currentScript){info.innerHTML=`<span style="color:var(--text);font-weight:700;">${currentScript.category?.emoji} ${currentScript.product}</span> <span style="color:var(--muted);">— ${currentScript.type==='wow'?'WOW형':'PAIN형'} · 10구간 수집</span>`;info.style.borderColor='rgba(16,185,129,.4)';btn.disabled=false;}
-  else{info.textContent='먼저 스크립트를 생성해주세요.';info.style.borderColor='var(--border)';btn.disabled=true;}
+  const mediaStatus=document.getElementById('productSourceStatus');
+  const mediaInfo=document.getElementById('productSourceInfo');
+
+  if (currentScript){
+    info.innerHTML=`<span style="color:var(--text);font-weight:700;">${currentScript.category?.emoji} ${currentScript.product}</span> <span style="color:var(--muted);">— ${currentScript.type==='wow'?'WOW형':'PAIN형'} · 10구간 수집</span>`;
+    info.style.borderColor='rgba(16,185,129,.4)';btn.disabled=false;
+  }else{info.textContent='먼저 스크립트를 생성해주세요.';info.style.borderColor='var(--border)';btn.disabled=true;}
+
+  const media = currentAnalysis?.extractedMedia || extractedMedia;
+  if (media.videos.length+media.images.length > 0){
+    mediaStatus.style.display='block';
+    mediaInfo.textContent=`🎬 영상 ${media.videos.length}개 + 🖼️ 이미지 ${media.images.length}개 — 해결/활용 구간에 자동 배치됩니다`;
+  }else{
+    mediaStatus.style.display='none';
+  }
 }
 
 async function onCollectSources(){
   if (!currentScript){showError('먼저 스크립트를 생성해주세요');return;}
   const btn=document.getElementById('collectBtn');btn.disabled=true;
   document.getElementById('collectLoading').style.display='block';
-  document.getElementById('sourcesOut').innerHTML='';
-  collectedSources={};
+  document.getElementById('sourcesOut').innerHTML='';collectedSources={};
 
   const sections=getSections(currentScript.type);
   document.getElementById('collectStatus').textContent='Claude로 구간별 키워드 생성 중...';
@@ -658,83 +753,130 @@ async function onCollectSources(){
   const product=currentScript.product||'';
   const analysis=currentScript.analysis||{};
   const mainPain=(analysis.main_pains||[''])[0];
-  const visualScene=(analysis.visual_scenes||[''])[0];
   const isWow=currentScript.type==='wow';
 
+  // 제품 소스 가져오기
+  const media = currentAnalysis?.extractedMedia || extractedMedia;
+  const hasProductMedia = media.videos.length+media.images.length > 0;
+
   const aiPromptMap=isWow?{
-    opening_1:`Extreme close-up of ${product}, dark dramatic background, neon lighting, mystery, vertical 9:16`,
-    opening_2:`${product} surprising feature reveal, cinematic dramatic, vertical 9:16`,
-    proof_1:`${product} specs detail macro shot, white studio, professional product photography, vertical 9:16`,
-    proof_2:`${product} close-up detail, high contrast studio lighting, vertical 9:16`,
-    proof_3:`${product} in action dynamic shot, colorful, vertical 9:16`,
-    usage_1:`Person reaching for ${product} with anticipation, warm lighting, vertical 9:16`,
-    usage_2:`Person using ${product} happily, lifestyle, bright colors, vertical 9:16`,
-    usage_3:`Person satisfied after using ${product}, bright smile, vertical 9:16`,
-    cta_1:`${product} product hero shot, premium minimal background, vertical 9:16`,
-    cta_2:`${product} with lifestyle background, call to action feel, vertical 9:16`,
+    opening_1:`Mysterious dramatic product teaser, dark neon background, cinematic, vertical 9:16`,
+    opening_2:`Product surprise reveal, dramatic lighting, vertical 9:16`,
+    cta_1:`Person smiling satisfied, bright warm, lifestyle, vertical 9:16`,
+    cta_2:`Happy customer with product, bright, vertical 9:16`,
   }:{
-    opening_1:`Korean person looking extremely frustrated, dramatic dark lighting, close-up face, vertical 9:16`,
-    opening_2:`"${mainPain}" problem situation, realistic, dark moody, vertical 9:16`,
-    empathy_1:`Person struggling with daily inconvenience, stressed expression, realistic, vertical 9:16`,
-    empathy_2:`Close-up of problem "${mainPain}", detailed realistic shot, vertical 9:16`,
-    empathy_3:`Person giving up in frustration, relatable, cinematic, vertical 9:16`,
-    solution_1:`${product} appearing as solution, dramatic reveal lighting, vertical 9:16`,
-    solution_2:`Person using ${product}, "${visualScene||'lifestyle'}", warm natural light, vertical 9:16`,
-    solution_3:`Person smiling with relief using ${product}, satisfied, bright, vertical 9:16`,
-    cta_1:`${product} product shot, minimal background, premium, vertical 9:16`,
-    cta_2:`Person holding ${product} happily, thumbs up, bright, vertical 9:16`,
+    opening_1:`Korean person extremely frustrated, dramatic dark lighting, close-up face, no product, vertical 9:16`,
+    opening_2:`"${mainPain}" problem situation, dark moody realistic, vertical 9:16`,
+    empathy_1:`Person struggling with daily inconvenience, stressed, realistic, vertical 9:16`,
+    empathy_2:`Close-up of the problem, detailed realistic, vertical 9:16`,
+    empathy_3:`Person giving up frustrated, cinematic, vertical 9:16`,
+    cta_1:`Person smiling satisfied, bright warm lifestyle, vertical 9:16`,
+    cta_2:`Happy satisfied customer, bright, vertical 9:16`,
   };
+
+  let prodImgIdx=0, prodVidIdx=0;
 
   for (const sec of sections){
     const kw=keywords?.[sec.key]||product;
     document.getElementById('collectStatus').textContent=`"${sec.label}" 소스 수집 중...`;
 
-    const [pexelsVideos,pixabayVideos,pixabayImages]=await Promise.all([
-      fetchPexelsVideos(kw,2),
-      fetchPixabayVideos(kw,2),
-      fetchPixabayImages(kw,2),
-    ]);
-
     let aiImg=null;
-    const aiPrompt=aiPromptMap[sec.key];
-    if (aiPrompt){
-      document.getElementById('collectStatus').textContent=`"${sec.label}" AI 이미지 생성 중...`;
-      aiImg=await generateGeminiImage(aiPrompt);
+    let productSrc=null;
+    let stockVideos=[];
+
+    const secType=sec.key.split('_')[0]; // opening, empathy, solution, proof, usage, cta
+
+    // 제품 소스가 있고 해결/증명/활용 구간이면 제품 소스 우선
+    if (hasProductMedia && ['solution','proof','usage'].includes(secType)){
+      if (media.videos.length > 0){
+        const v=media.videos[prodVidIdx % media.videos.length];
+        prodVidIdx++;
+        productSrc={type:'product_video',url:v.url,thumb:v.thumb};
+      } else if (media.images.length > 0){
+        const img=media.images[prodImgIdx % media.images.length];
+        prodImgIdx++;
+        productSrc={type:'product_image',url:img.url,thumb:img.thumb||img.url};
+      }
     }
 
-    const allVideos=[...pexelsVideos,...pixabayVideos];
-    const allImages=pixabayImages;
-    collectedSources[sec.key]={videos:allVideos,images:allImages,aiImage:aiImg,selected:null,keyword:kw};
-    renderSourceSection(sec.key,sec.label,sec.desc,allVideos,allImages,aiImg,kw);
+    // AI 이미지 (공감/오프닝/CTA)
+    const aiPromptKey=sec.key;
+    if (aiPromptMap[aiPromptKey]){
+      document.getElementById('collectStatus').textContent=`"${sec.label}" AI 이미지 생성 중...`;
+      aiImg=await generateGeminiImage(aiPromptMap[aiPromptKey]);
+    }
+
+    // Pexels/Pixabay (보조)
+    const [pexels,pixabay]=await Promise.all([
+      fetchPexelsVideos(kw,1),
+      fetchPixabayVideos(kw,1),
+    ]);
+    stockVideos=[...pexels,...pixabay];
+
+    collectedSources[sec.key]={
+      productSrc, aiImage:aiImg, stockVideos,
+      selected:null, keyword:kw
+    };
+    renderSourceSection(sec.key, sec.label, sec.desc, productSrc, aiImg, stockVideos);
   }
 
   document.getElementById('collectLoading').style.display='none';btn.disabled=false;
   const dl=document.createElement('div');
   dl.style.cssText='margin-top:20px;padding:16px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.3);border-radius:10px;';
-  dl.innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ 10구간 수집 완료</div><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">각 구간에서 원하는 소스를 선택하세요.</div><button class="btn btn-primary btn-sm" onclick="go('render',document.querySelectorAll('.nav-item')[4])">🚀 영상 생성으로 이동 →</button>`;
+  dl.innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ 10구간 수집 완료</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">선택하지 않은 구간은 자동으로 최적 소스를 사용합니다.</div>
+    <button class="btn btn-primary btn-sm" onclick="go('render',document.querySelectorAll('.nav-item')[4])">🚀 영상 생성으로 이동 →</button>`;
   document.getElementById('sourcesOut').appendChild(dl);
   showSuccess('10구간 소스 수집 완료!');
 }
 
-function renderSourceSection(key,label,desc,videos,images,aiImage,keyword){
+function renderSourceSection(key, label, desc, productSrc, aiImage, stockVideos){
   const container=document.getElementById('sourcesOut');
   const sec=document.createElement('div');sec.className='source-section';sec.id=`section-${key}`;
+
+  const hasProduct=!!productSrc;
+
   sec.innerHTML=`
     <div class="source-section-header">
-      <div class="source-section-title">${label}</div>
-      <div style="font-size:10px;color:var(--muted);">${desc} · "${keyword}"</div>
+      <div class="source-section-title">${label} ${hasProduct?'<span style="color:var(--success);font-size:9px;">✅제품</span>':''}</div>
+      <div style="font-size:10px;color:var(--muted);">${desc}</div>
     </div>
     <div class="source-tabs">
-      <div class="source-tab active" onclick="switchTab('${key}','upload',this)">📁 업로드</div>
-      <div class="source-tab" onclick="switchTab('${key}','ai',this)">🤖 AI</div>
-      <div class="source-tab" onclick="switchTab('${key}','video',this)">🎬 영상(${videos.length})</div>
-      <div class="source-tab" onclick="switchTab('${key}','image',this)">🖼️ 이미지(${images.length})</div>
+      <div class="source-tab ${hasProduct?'active':''}" onclick="switchTab('${key}','product',this)" ${!hasProduct?'style="opacity:.4;cursor:not-allowed"':''}>🏪 제품 소스${hasProduct?'':' (없음)'}</div>
+      <div class="source-tab ${!hasProduct?'active':''}" onclick="switchTab('${key}','ai',this)">🤖 Gemini AI</div>
+      <div class="source-tab" onclick="switchTab('${key}','stock',this)">🎬 스톡(${stockVideos.length})</div>
+      <div class="source-tab" onclick="switchTab('${key}','upload',this)">📁 업로드</div>
     </div>
-    <div id="tab-${key}-upload">
+
+    <div id="tab-${key}-product" style="display:${hasProduct?'block':'none'};">
+      ${hasProduct ? `
+        <div class="source-grid">
+          <div class="source-card selected" id="prod-src-${key}" onclick="selectProductSrc('${key}',this)">
+            <span class="source-card-type type-product">${productSrc.type==='product_video'?'🎬 제품영상':'🖼️ 제품이미지'}</span>
+            <img src="${productSrc.thumb||''}" alt="제품 소스" onerror="this.src=''">
+            <div class="source-card-label">실제 제품 소스</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--success);margin-top:8px;">✅ 실제 제품 소스가 자동 선택됩니다</div>
+      ` : `<div style="padding:16px;color:var(--muted);font-size:12px;">쿠팡 URL을 입력하면 실제 제품 소스를 사용할 수 있습니다.</div>`}
+    </div>
+
+    <div id="tab-${key}-ai" style="display:${!hasProduct?'block':'none'};">
+      ${aiImage?`<div class="source-grid"><div class="source-card" onclick="selectAiSrc('${key}',this)"><span class="source-card-type type-ai">🤖 AI</span><img src="${aiImage}" alt="AI"><div class="source-card-label">Gemini AI 생성</div></div></div>`:`<div style="padding:16px;color:var(--muted);font-size:12px;">AI 이미지 없음</div>`}
+      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenAI('${key}')">↺ AI 재생성</button>
+    </div>
+
+    <div id="tab-${key}-stock" style="display:none;">
+      <div class="source-grid" id="grid-stock-${key}">
+        ${stockVideos.length===0?`<div style="padding:16px;color:var(--muted);font-size:12px;grid-column:1/-1;">스톡 영상 없음</div>`:stockVideos.map((v,i)=>`<div class="source-card" onclick="selectStockSrc('${key}',${i},this)"><span class="source-card-type type-video">${v.source==='pixabay'?'Pixabay':'Pexels'}</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration||''}초</div></div>`).join('')}
+      </div>
+    </div>
+
+    <div id="tab-${key}-upload" style="display:none;">
       <div class="upload-zone" onclick="document.getElementById('file-${key}').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleFileDrop(event,'${key}')">
-        <div style="font-size:24px;margin-bottom:4px;">📁</div>
-        <div style="font-size:12px;font-weight:600;margin-bottom:2px;">이미지/영상 업로드</div>
-        <div style="font-size:10px;color:var(--muted);">JPG, PNG, MP4 · 클릭 또는 드래그</div>
+        <div style="font-size:22px;margin-bottom:4px;">📁</div>
+        <div style="font-size:12px;font-weight:600;">이미지/영상 업로드</div>
+        <div style="font-size:10px;color:var(--muted);">JPG, PNG, MP4</div>
         <input type="file" id="file-${key}" accept="image/*,video/*" style="display:none" onchange="handleFileSelect(event,'${key}')">
       </div>
       <div id="upload-preview-${key}" style="display:none;margin-top:8px;">
@@ -745,119 +887,83 @@ function renderSourceSection(key,label,desc,videos,images,aiImage,keyword){
         </div>
       </div>
     </div>
-    <div id="tab-${key}-ai" style="display:none;">
-      ${aiImage?`<div class="source-grid"><div class="source-card" onclick="selectSource('${key}','ai',null,this)"><span class="source-card-type type-ai">AI</span><img src="${aiImage}" alt="AI"><div class="source-card-label">Gemini AI</div></div></div>`:`<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">AI 이미지 없음</div>`}
-      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenAI('${key}')">↺ AI 재생성</button>
-    </div>
-    <div id="tab-${key}-video" style="display:none;">
-      <div class="source-grid" id="grid-video-${key}">
-        ${videos.length===0?`<div style="padding:16px;color:var(--muted);font-size:12px;grid-column:1/-1;">검색 결과 없음</div>`:videos.map((v,i)=>`<div class="source-card" onclick="selectSourceVideo('${key}',${i},this)"><span class="source-card-type type-video">${v.source==='pixabay'?'Pixabay':'Pexels'}</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration||''}초</div></div>`).join('')}
-      </div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenVideos('${key}')">↺ 재검색</button>
-    </div>
-    <div id="tab-${key}-image" style="display:none;">
-      <div class="source-grid" id="grid-image-${key}">
-        ${images.length===0?`<div style="padding:16px;color:var(--muted);font-size:12px;grid-column:1/-1;">검색 결과 없음</div>`:images.map((img,i)=>`<div class="source-card" onclick="selectSourceImage('${key}',${i},this)"><span class="source-card-type type-ai" style="background:rgba(245,158,11,.85);">Pixabay</span><img src="${img.thumb}" alt="" style="aspect-ratio:9/16;object-fit:cover;"><div class="source-card-label">이미지</div></div>`).join('')}
-      </div>
-    </div>
   `;
   container.appendChild(sec);
+
+  // 제품 소스가 있으면 자동 선택
+  if (hasProduct){
+    collectedSources[key]=collectedSources[key]||{};
+    collectedSources[key].selected={type:'product',data:productSrc};
+  }
 }
 
 function switchTab(key,tab,el){
-  ['upload','ai','video','image'].forEach(t=>{const el2=document.getElementById(`tab-${key}-${t}`);if(el2)el2.style.display=t===tab?'block':'none';});
+  ['product','ai','stock','upload'].forEach(t=>{const e=document.getElementById(`tab-${key}-${t}`);if(e)e.style.display=t===tab?'block':'none';});
   document.querySelectorAll(`#section-${key} .source-tab`).forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
 }
 
+function selectProductSrc(key,cardEl){
+  const src=collectedSources[key]?.productSrc;
+  if(src){collectedSources[key].selected={type:'product',data:src};showSuccess('제품 소스 선택!');}
+}
+function selectAiSrc(key,cardEl){
+  document.querySelectorAll(`#tab-${key}-ai .source-card`).forEach(c=>c.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  collectedSources[key].selected={type:'ai',data:{}};showSuccess('AI 이미지 선택!');
+}
+function selectStockSrc(key,idx,cardEl){
+  document.querySelectorAll(`#grid-stock-${key} .source-card`).forEach(c=>c.classList.remove('selected'));
+  cardEl.classList.add('selected');
+  const v=collectedSources[key]?.stockVideos?.[idx];
+  if(v)collectedSources[key].selected={type:'video',data:{url:v.url,duration:v.duration}};
+  showSuccess('스톡 영상 선택!');
+}
+
 function handleFileSelect(event,key){const file=event.target.files[0];if(file)processUploadedFile(file,key);}
 function handleFileDrop(event,key){event.preventDefault();event.currentTarget.classList.remove('drag-over');const file=event.dataTransfer.files[0];if(file)processUploadedFile(file,key);}
-
 function processUploadedFile(file,key){
   const reader=new FileReader();
   reader.onload=(e)=>{
-    const base64=e.target.result;
     collectedSources[key]=collectedSources[key]||{};
-    collectedSources[key].selected={idx:'upload',type:'upload',data:{base64,type:file.type,name:file.name}};
+    collectedSources[key].selected={type:'upload',data:{base64:e.target.result,type:file.type,name:file.name}};
     const preview=document.getElementById(`upload-preview-${key}`);
     const img=document.getElementById(`upload-img-${key}`);
-    const nameEl=document.getElementById(`upload-name-${key}`);
-    if(file.type.startsWith('image/'))img.src=base64;else img.style.display='none';
-    preview.style.display='block';nameEl.textContent=`✅ ${file.name}`;
+    if(file.type.startsWith('image/'))img.src=e.target.result;
+    preview.style.display='block';
+    document.getElementById(`upload-name-${key}`).textContent=`✅ ${file.name}`;
     showSuccess(`${key} 업로드 완료!`);
   };
   reader.readAsDataURL(file);
 }
-
-function clearUpload(key){
-  if(collectedSources[key]?.selected?.idx==='upload')collectedSources[key].selected=null;
-  document.getElementById(`upload-preview-${key}`).style.display='none';
-  document.getElementById(`file-${key}`).value='';
-}
-
-function selectSource(key,idx,aiKey,cardEl){
-  document.querySelectorAll(`#tab-${key}-ai .source-card`).forEach(c=>c.classList.remove('selected'));
-  if(cardEl)cardEl.classList.add('selected');
-  collectedSources[key]=collectedSources[key]||{};
-  collectedSources[key].selected={idx:'ai',type:'ai',data:{}};
-  showSuccess('AI 이미지 선택!');
-}
-
-function selectSourceVideo(key,idx,cardEl){
-  document.querySelectorAll(`#grid-video-${key} .source-card`).forEach(c=>c.classList.remove('selected'));
-  if(cardEl)cardEl.classList.add('selected');
-  const v=collectedSources[key]?.videos?.[idx];
-  if(v)collectedSources[key].selected={idx,type:'video',data:{url:v.url,duration:v.duration}};
-  showSuccess('영상 선택!');
-}
-
-function selectSourceImage(key,idx,cardEl){
-  document.querySelectorAll(`#grid-image-${key} .source-card`).forEach(c=>c.classList.remove('selected'));
-  if(cardEl)cardEl.classList.add('selected');
-  const img=collectedSources[key]?.images?.[idx];
-  if(img)collectedSources[key].selected={idx,type:'image',data:{url:img.url}};
-  showSuccess('이미지 선택!');
-}
+function clearUpload(key){if(collectedSources[key]?.selected?.type==='upload')collectedSources[key].selected=null;document.getElementById(`upload-preview-${key}`).style.display='none';document.getElementById(`file-${key}`).value='';}
 
 async function regenAI(key){
   if(!currentScript)return;
-  const product=currentScript.product||'';const a=currentScript.analysis||{};
-  const isWow=currentScript.type==='wow';
-  const prompts={
-    opening_1:`${product} dramatic cinematic, dark neon lighting, vertical 9:16`,
-    opening_2:`${product} surprising reveal, cinematic, vertical 9:16`,
-    empathy_1:`Person stressed and frustrated, dark moody, vertical 9:16`,
-    solution_1:`${product} product hero shot, clean background, vertical 9:16`,
-    solution_2:`Person happy using ${product}, warm lifestyle, vertical 9:16`,
-  };
-  const prompt=prompts[key]||`${product} product photography, vertical 9:16`;
+  const product=currentScript.product||'';
   const container=document.getElementById(`tab-${key}-ai`);
   container.innerHTML='<div style="padding:12px;color:var(--muted);font-size:11px;">AI 이미지 생성 중...</div>';
+  const prompts={opening_1:`Korean person extremely frustrated, dramatic dark, close-up, no product, vertical 9:16`,empathy_1:`Person struggling with problem, stressed realistic, vertical 9:16`,solution_1:`${product} product hero shot, clean background, vertical 9:16`,cta_1:`Person smiling satisfied, bright lifestyle, vertical 9:16`};
+  const prompt=prompts[key]||`${product} product photography, vertical 9:16`;
   const aiImg=await generateGeminiImage(prompt);
   if(aiImg){
     collectedSources[key]=collectedSources[key]||{};collectedSources[key].aiImage=aiImg;
-    container.innerHTML=`<div class="source-grid"><div class="source-card" onclick="selectSource('${key}','ai',null,this)"><span class="source-card-type type-ai">AI</span><img src="${aiImg}" alt="AI"><div class="source-card-label">Gemini AI</div></div></div><button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenAI('${key}')">↺ 재생성</button>`;
+    container.innerHTML=`<div class="source-grid"><div class="source-card" onclick="selectAiSrc('${key}',this)"><span class="source-card-type type-ai">🤖 AI</span><img src="${aiImg}" alt="AI"><div class="source-card-label">Gemini AI</div></div></div><button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenAI('${key}')">↺ 재생성</button>`;
     showSuccess('AI 재생성 완료!');
   }else{container.innerHTML=`<div style="padding:12px;color:var(--danger);font-size:11px;">생성 실패</div><button class="btn btn-secondary btn-sm" onclick="regenAI('${key}')">↺ 재시도</button>`;}
-}
-
-async function regenVideos(key){
-  if(!currentScript)return;const kw=collectedSources[key]?.keyword||currentScript.product;
-  const grid=document.getElementById(`grid-video-${key}`);if(grid)grid.innerHTML='<div style="padding:12px;color:var(--muted);font-size:11px;">재검색 중...</div>';
-  const[pexels,pixabay]=await Promise.all([fetchPexelsVideos(kw,2),fetchPixabayVideos(kw,2)]);
-  const allVideos=[...pexels,...pixabay];
-  collectedSources[key]={...collectedSources[key]||{},videos:allVideos,selected:null};
-  if(grid)grid.innerHTML=allVideos.length===0?`<div style="padding:16px;color:var(--muted);font-size:12px;grid-column:1/-1;">검색 결과 없음</div>`:allVideos.map((v,i)=>`<div class="source-card" onclick="selectSourceVideo('${key}',${i},this)"><span class="source-card-type type-video">${v.source==='pixabay'?'Pixabay':'Pexels'}</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration||''}초</div></div>`).join('');
-  showSuccess('재검색 완료!');
 }
 
 // ===== 렌더링 =====
 function updateRenderPageInfo(){
   const hasScript=!!currentScript;const hasToken=!!CONFIG.get('github_token');
+  const media=currentAnalysis?.extractedMedia||extractedMedia;
+  const hasMedia=media.videos.length+media.images.length>0;
   document.getElementById('ready-script-icon').textContent=hasScript?'✅':'❌';
   document.getElementById('ready-script-text').textContent=hasScript?`스크립트 준비됨 — ${currentScript.category?.emoji} ${currentScript.product}`:'스크립트 미생성';
   document.getElementById('ready-token-icon').textContent=hasToken?'✅':'❌';
   document.getElementById('ready-token-text').textContent=hasToken?'GitHub 토큰 설정됨':'GitHub 토큰 미설정';
+  document.getElementById('ready-media-icon').textContent=hasMedia?'✅':'⚠️';
+  document.getElementById('ready-media-text').textContent=hasMedia?`실제 제품 소스 준비됨 (영상 ${media.videos.length}개, 이미지 ${media.images.length}개)`:'제품 소스 없음 — Gemini AI로 대체 생성';
   document.getElementById('renderBtn').disabled=!(hasScript&&hasToken);
 }
 
@@ -870,23 +976,36 @@ async function onStartRender(){
   document.getElementById('renderBtn').disabled=true;
   setProgress(0);setStep('trigger','active');
 
-  // base64 제거, URL/선택정보만 전송
+  // sources_data 경량화 + 쿠팡 미디어 포함
   const lightSources={};
   for(const [key,val] of Object.entries(collectedSources)){
-    const selected=val.selected;
-    if(!selected){lightSources[key]={};}
-    else if(selected.type==='upload'||selected.type==='ai'){lightSources[key]={selected:{idx:'ai',type:'ai',data:{}}};}
-    else if(selected.data?.url){lightSources[key]={selected:{idx:selected.idx,type:selected.type,data:{url:selected.data.url,duration:selected.data.duration}}};}
+    const sel=val.selected;
+    if(!sel){lightSources[key]={};}
+    else if(sel.type==='product'){lightSources[key]={selected:{idx:'product',type:'product',data:{url:sel.data.url,type:sel.data.type}}};}
+    else if(sel.type==='ai'||sel.type==='upload'){lightSources[key]={selected:{idx:'ai',type:'ai',data:{}}};}
+    else if(sel.data?.url){lightSources[key]={selected:{idx:sel.type,type:'video',data:{url:sel.data.url,duration:sel.data.duration}}};}
     else{lightSources[key]={};}
   }
 
+  // 쿠팡 미디어를 SOURCES_DATA에 포함
+  const media=currentAnalysis?.extractedMedia||extractedMedia;
+  lightSources['_coupang_videos']=media.videos.slice(0,5).map(v=>({url:v.url,thumb:v.thumb}));
+  lightSources['_coupang_images']=media.images.slice(0,15).map(img=>({url:img.url,thumb:img.thumb}));
+
   try{
-    const scriptStr=JSON.stringify(currentScript);const sourcesStr=JSON.stringify(lightSources);
+    const scriptStr=JSON.stringify(currentScript);
+    const sourcesStr=JSON.stringify(lightSources);
     console.log('전송 크기 — script:',scriptStr.length,'sources:',sourcesStr.length);
+
+    if(sourcesStr.length > 60000){
+      // 이미지 URL만 전송 (base64 제거)
+      lightSources['_coupang_images']=lightSources['_coupang_images'].slice(0,8);
+    }
+
     const res=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`,{
       method:'POST',
       headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
-      body:JSON.stringify({ref:'main',inputs:{script_data:scriptStr,sources_data:sourcesStr}})
+      body:JSON.stringify({ref:'main',inputs:{script_data:scriptStr,sources_data:JSON.stringify(lightSources)}})
     });
     if(res.status!==204){const err=await res.json();throw new Error(err.message||'트리거 실패');}
     setStep('trigger','done');setProgress(15);showSuccess('GitHub Actions 시작됨!');
@@ -930,12 +1049,8 @@ async function showDownloadLink(token,runId){
   try{
     const res=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}/artifacts`,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}});
     const data=await res.json();const artifact=data.artifacts?.find(a=>a.name==='completed-video');
-    if(artifact){
-      window._artifactId=artifact.id;window._githubToken=token;
-      document.getElementById('renderResult').style.display='block';
-      document.getElementById('renderResultDesc').textContent=`${currentScript.product} 영상이 완성됐습니다!`;
-      let count=parseInt(localStorage.getItem('video_count')||'0');localStorage.setItem('video_count',count+1);updateStats();
-    }else{showRenderError('아티팩트를 찾을 수 없습니다. GitHub Actions에서 직접 확인해주세요.');}
+    if(artifact){window._artifactId=artifact.id;window._githubToken=token;document.getElementById('renderResult').style.display='block';document.getElementById('renderResultDesc').textContent=`${currentScript.product} 영상이 완성됐습니다!`;let count=parseInt(localStorage.getItem('video_count')||'0');localStorage.setItem('video_count',count+1);updateStats();}
+    else{showRenderError('아티팩트를 찾을 수 없습니다.');}
   }catch(err){showRenderError('다운로드 링크 생성 실패: '+err.message);}
 }
 
@@ -962,8 +1077,7 @@ function showRenderError(msg){document.getElementById('renderError').style.displ
 function renderVoiceSelector(categoryKey){
   const voice=VOICE_MAP[categoryKey]||VOICE_MAP['gadget'];
   ['voiceSelector','audioPlayer'].forEach(id=>{const el=document.getElementById(id);if(el)el.remove();});
-  const div=document.createElement('div');div.id='voiceSelector';
-  div.style.cssText='margin-top:16px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);';
+  const div=document.createElement('div');div.id='voiceSelector';div.style.cssText='margin-top:16px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);';
   div.innerHTML=`
     <div style="font-size:11px;color:var(--accent2);font-family:'Space Mono',monospace;margin-bottom:10px;">🎙️ 나레이션 목소리</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
