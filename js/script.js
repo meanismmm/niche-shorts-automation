@@ -1,5 +1,5 @@
 // =============================================
-// v2.0 — 카테고리 + 상품 분석 기반 스크립트
+// v2.1 — 상품 분석 + 소스 검색 링크
 // =============================================
 
 const CATEGORIES = {
@@ -10,6 +10,73 @@ const CATEGORIES = {
   kitchen:    { name: '주방/요리',     type: 'pain', emoji: '🍳' },
   gadget:     { name: '신박한 아이템', type: 'wow',  emoji: '✨' },
 };
+
+// =============================================
+// 소스 검색 링크 생성
+// =============================================
+function buildSourceSearchLinks(productName) {
+  const encoded = encodeURIComponent(productName);
+  const encodedKr = encodeURIComponent(productName);
+
+  return [
+    {
+      label: '알리익스프레스',
+      icon: '🛒',
+      color: '#e52a2a',
+      url: `https://www.aliexpress.com/wholesale?SearchText=${encoded}`,
+    },
+    {
+      label: '타오바오',
+      icon: '🏮',
+      color: '#ff6600',
+      url: `https://s.taobao.com/search?q=${encoded}`,
+    },
+    {
+      label: '1688 (도매)',
+      icon: '🏭',
+      color: '#ff4400',
+      url: `https://s.1688.com/selloffer/offer_search.htm?keywords=${encoded}`,
+    },
+    {
+      label: 'YouTube 영상',
+      icon: '▶️',
+      color: '#ff0000',
+      url: `https://www.youtube.com/results?search_query=${encodedKr}+리뷰`,
+    },
+    {
+      label: 'Google 이미지',
+      icon: '🖼️',
+      color: '#4285f4',
+      url: `https://www.google.com/search?q=${encodedKr}&tbm=isch`,
+    },
+    {
+      label: '쿠팡 검색',
+      icon: '🛍️',
+      color: '#00bcd4',
+      url: `https://www.coupang.com/np/search?q=${encodedKr}`,
+    },
+  ];
+}
+
+function renderSourceSearchLinks(productName, containerId) {
+  const links = buildSourceSearchLinks(productName);
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="margin-top:16px;padding:14px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:10px;">
+      <div style="font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;margin-bottom:10px;">🔍 영상 소스 수집용 검색 링크</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${links.map(l => `
+          <a href="${l.url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:12px;color:var(--text);text-decoration:none;transition:all .15s;" onmouseover="this.style.borderColor='${l.color}'" onmouseout="this.style.borderColor='var(--border)'">
+            ${l.icon} ${l.label}
+          </a>
+        `).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;">💡 클릭 후 제품 이미지/영상 저장 → 영상 소스 수집 탭에서 직접 업로드</div>
+    </div>
+  `;
+}
 
 // =============================================
 // 1단계: 카테고리별 상품 추천
@@ -32,15 +99,14 @@ async function recommendProducts(categoryKey) {
 - 쇼츠/릴스 영상으로 만들기 좋은 시각적 상품
 - 파트너스 수수료 높은 카테고리 우선
 
-반드시 아래 JSON 형식으로만 응답 (JSON 외 텍스트 금지):
-
+반드시 아래 JSON 형식으로만 응답:
 {
   "products": [
     {
       "rank": 1,
       "name": "상품명",
       "price_range": "가격대 (예: 2~3만원)",
-      "why": "추천 이유 한 줄 (쇼츠 영상으로 만들기 좋은 이유)",
+      "why": "추천 이유 한 줄",
       "pain_or_wow": "pain 또는 wow",
       "search_keyword": "쿠팡 검색 키워드"
     }
@@ -75,7 +141,7 @@ async function recommendProducts(categoryKey) {
 }
 
 // =============================================
-// 2단계: 쿠팡 상세페이지 분석
+// 2단계: 상품 분석
 // =============================================
 async function analyzeProduct(url, productName) {
   const claudeKey = CONFIG.get(CONFIG.KEYS.CLAUDE);
@@ -109,7 +175,6 @@ ${pageContent ? `페이지 내용:\n${pageContent}` : ''}
 페이지 내용이 없으면 상품명만으로 최대한 분석해주세요.
 
 반드시 아래 JSON 형식으로만 응답:
-
 {
   "product_name": "정확한 상품명",
   "core_function": "핵심 기능 한 줄",
@@ -119,7 +184,7 @@ ${pageContent ? `페이지 내용:\n${pageContent}` : ''}
   "wow_points": ["놀라운 점1", "놀라운 점2"],
   "hook_keywords": ["후킹에 쓸 키워드1", "키워드2", "키워드3"],
   "recommended_type": "pain 또는 wow",
-  "price_appeal": "가격 매력 포인트 (예: 배달음식 한 번 값으로)",
+  "price_appeal": "가격 매력 포인트",
   "visual_scenes": ["영상으로 보여주면 좋은 장면1", "장면2", "장면3"]
 }`;
 
@@ -151,7 +216,7 @@ ${pageContent ? `페이지 내용:\n${pageContent}` : ''}
 }
 
 // =============================================
-// 3단계: 분석 데이터 기반 스크립트 생성
+// 3단계: 스크립트 생성
 // =============================================
 async function generateScriptFromAnalysis(analysis, categoryKey, coupangLink) {
   const claudeKey = CONFIG.get(CONFIG.KEYS.CLAUDE);
@@ -215,20 +280,20 @@ function buildPainPromptV2(analysis, category, link) {
 절대 금지:
 - 시간대 표현 (늦은 밤, 새벽, 아침, 저녁)
 - 막연한 표현 (항상, 매번, 늘, 자꾸)
-- 광고 티 나는 표현 (추천합니다, 강력추천)
-- 첫 문장에 상품명 언급
-- JSON 외 텍스트 출력
+- 광고 티 (추천합니다, 강력추천)
+- 첫 문장 상품명 언급
+- JSON 외 텍스트
 
 반드시 아래 JSON 형식으로만 응답:
 {
   "pain_selected": "선택한 PAIN 한 줄",
-  "opening": "후킹 질문 (20자 이내, 구체적 행동 상황, 상품명 금지)",
-  "empathy": "공감 2~3문장 (구체적 실패 상황, 감정 묘사)",
-  "solution": "해결 3~4문장 (상품명 1회, 스펙/수치 포함)",
-  "cta": "행동 유도 1~2문장 (설명란 링크 언급)",
+  "opening": "후킹 질문 (20자 이내, 구체적 행동 상황, 상품명 금지, 물음표로 끝날 것)",
+  "empathy": "공감 2~3문장 (구체적 실패 상황, 감정 묘사, 짧고 강렬하게)",
+  "solution": "해결 3~4문장 (상품명 1회, 스펙/수치 포함, 변화 강조)",
+  "cta": "행동 유도 1~2문장 (설명란 링크 언급, 긴박감)",
   "hashtags": ["태그1","태그2","태그3","태그4","태그5"],
   "youtube_title": "제목 (30자 이내, 숫자나 반전 포함)",
-  "description": "설명란 텍스트 (SEO 최적화)\\n\\n파트너스 링크: ${link || '[쿠팡파트너스 링크 입력]'}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."
+  "description": "설명란\\n\\n파트너스 링크: ${link || '[쿠팡파트너스 링크 입력]'}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."
 }`;
 }
 
@@ -248,18 +313,18 @@ WOW 포인트: ${analysis.wow_points?.join(' / ')}
 절대 금지:
 - 오프닝에 상품명 직접 언급
 - 뻔한 리뷰 형식
-- JSON 외 텍스트 출력
+- JSON 외 텍스트
 
 반드시 아래 JSON 형식으로만 응답:
 {
   "wow_selected": "선택한 WOW 포인트",
-  "opening": "호기심 오프닝 (20자 이내, 반전/충격, 상품명 금지)",
-  "proof": "증명 2~3문장 (구체적 수치, 스펙, 비교)",
-  "usage": "활용 2~3문장 (구체적 사용 장면)",
-  "cta": "행동 유도 1~2문장",
+  "opening": "호기심 오프닝 (20자 이내, 반전/충격, 상품명 금지, 물음표로 끝날 것)",
+  "proof": "증명 2~3문장 (구체적 수치, 스펙, 비교, 짧고 강렬하게)",
+  "usage": "활용 2~3문장 (구체적 사용 장면, 변화 강조)",
+  "cta": "행동 유도 1~2문장 (긴박감)",
   "hashtags": ["태그1","태그2","태그3","태그4","태그5"],
   "youtube_title": "제목 (30자 이내, 숫자/반전 포함)",
-  "description": "설명란 텍스트 (SEO 최적화)\\n\\n파트너스 링크: ${link || '[쿠팡파트너스 링크 입력]'}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."
+  "description": "설명란\\n\\n파트너스 링크: ${link || '[쿠팡파트너스 링크 입력]'}\\n\\n※ 이 영상은 쿠팡파트너스 활동의 일환으로 수수료를 제공받을 수 있습니다."
 }`;
 }
 
