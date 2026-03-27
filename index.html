@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>니치 쇼츠 자동화 v2.0</title>
+<title>니치 쇼츠 자동화 v2.1</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c28;--border:#2a2a3d;--accent:#7c3aed;--accent2:#06b6d4;--accent3:#f59e0b;--text:#e8e8f0;--muted:#6b7280;--success:#10b981;--danger:#ef4444;}
@@ -39,7 +39,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .form-label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;font-family:'Space Mono',monospace;}
 .form-input,.form-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;transition:border-color .15s;outline:none;}
 .form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(124,58,237,.15);}
-.form-select option{background:var(--surface2);}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:8px;}
 .btn-primary{background:var(--accent);color:#fff;}
@@ -47,7 +46,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
 .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
 .btn-success{background:rgba(16,185,129,.15);color:var(--success);border:1px solid rgba(16,185,129,.4);}
-.btn-success:hover{background:rgba(16,185,129,.25);}
 .btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);}
 .btn-sm{padding:6px 12px;font-size:12px;}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
@@ -93,8 +91,6 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .empty-icon{font-size:40px;margin-bottom:12px;}
 .empty-text{font-size:13px;}
 input[type=range]{accent-color:var(--accent);}
-
-/* 상품 카드 */
 .product-card{display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;cursor:pointer;transition:all .15s;}
 .product-card:hover{border-color:var(--accent);background:rgba(124,58,237,.05);}
 .product-card.selected{border-color:var(--accent);background:rgba(124,58,237,.1);}
@@ -106,8 +102,6 @@ input[type=range]{accent-color:var(--accent);}
 .product-type{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Space Mono',monospace;}
 .type-pain{background:rgba(124,58,237,.15);color:var(--accent);}
 .type-wow{background:rgba(245,158,11,.15);color:var(--accent3);}
-
-/* 분석 결과 */
 .analysis-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;}
 .analysis-row{display:flex;gap:8px;margin-bottom:10px;font-size:13px;}
 .analysis-key{color:var(--accent2);font-family:'Space Mono',monospace;font-size:11px;min-width:90px;margin-top:2px;}
@@ -117,8 +111,6 @@ input[type=range]{accent-color:var(--accent);}
 .chip-red{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.25);}
 .chip-green{background:rgba(16,185,129,.12);color:var(--success);border-color:rgba(16,185,129,.25);}
 .chip-yellow{background:rgba(245,158,11,.12);color:var(--accent3);border-color:rgba(245,158,11,.25);}
-
-/* 스크립트 블록 */
 .script-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;}
 .script-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);}
 .script-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
@@ -126,30 +118,26 @@ input[type=range]{accent-color:var(--accent);}
 .script-text{font-size:14px;line-height:1.8;}
 .tag-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .tag{font-size:11px;padding:2px 10px;border-radius:20px;background:rgba(124,58,237,.15);color:var(--accent);border:1px solid rgba(124,58,237,.3);}
-
-/* 소스 수집 */
-.source-section{margin-bottom:24px;padding:16px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);}
-.source-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.source-section-title{font-size:12px;color:var(--accent3);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.1em;}
-.source-tabs{display:flex;gap:6px;margin-bottom:12px;}
-.source-tab{padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Space Mono',monospace;transition:all .15s;}
+.source-section{margin-bottom:16px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);}
+.source-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.source-section-title{font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.08em;}
+.source-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.source-tab{padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'Space Mono',monospace;transition:all .15s;}
 .source-tab:hover{border-color:var(--accent);color:var(--accent);}
 .source-tab.active{background:rgba(124,58,237,.15);border-color:var(--accent);color:var(--accent);}
-.source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.source-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .source-card{border-radius:8px;overflow:hidden;border:2px solid transparent;cursor:pointer;transition:all .15s;position:relative;background:var(--surface);}
 .source-card:hover{border-color:var(--accent);}
-.source-card.selected{border-color:var(--accent);box-shadow:0 0 12px rgba(124,58,237,.4);}
+.source-card.selected{border-color:var(--accent);box-shadow:0 0 10px rgba(124,58,237,.4);}
 .source-card img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;}
-.source-card-label{position:absolute;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(0,0,0,.75);font-size:10px;color:#fff;font-family:'Space Mono',monospace;}
-.source-card-type{position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:4px;font-size:9px;font-family:'Space Mono',monospace;font-weight:700;}
+.source-card-label{position:absolute;bottom:0;left:0;right:0;padding:3px 6px;background:rgba(0,0,0,.75);font-size:9px;color:#fff;font-family:'Space Mono',monospace;}
+.source-card-type{position:absolute;top:4px;left:4px;padding:2px 5px;border-radius:3px;font-size:8px;font-family:'Space Mono',monospace;font-weight:700;}
 .type-upload{background:rgba(16,185,129,.85);color:#fff;}
 .type-ai{background:rgba(124,58,237,.85);color:#fff;}
 .type-video{background:rgba(6,182,212,.85);color:#fff;}
-.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;}
+.upload-zone{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;}
 .upload-zone:hover{border-color:var(--accent);background:rgba(124,58,237,.05);}
 .upload-zone.drag-over{border-color:var(--accent);background:rgba(124,58,237,.1);}
-
-/* 렌더링 */
 .render-step{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);}
 .render-step-icon{font-size:20px;min-width:28px;text-align:center;}
 .render-step-text{flex:1;}
@@ -208,38 +196,26 @@ input[type=range]{accent-color:var(--accent);}
           <div class="stat-card g"><div class="stat-label">생성된 영상</div><div class="stat-value" id="s-videos">0</div></div>
         </div>
         <div class="card">
-          <div class="card-title">⚡ v2.0 파이프라인</div>
+          <div class="card-title">⚡ v2.1 파이프라인</div>
           <div style="display:flex;flex-direction:column;gap:10px;">
             <div onclick="go('products',document.querySelectorAll('.nav-item')[1])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(245,158,11,.3);">
-              <div style="font-size:24px;">1️⃣</div>
-              <div style="flex:1;">
-                <div style="font-size:13px;font-weight:700;">🛍️ 상품 탐색 — NEW</div>
-                <div style="font-size:11px;color:var(--muted);">카테고리 선택 → AI 상품 추천 10개 → 상세페이지 자동 분석</div>
-              </div>
+              <div style="font-size:22px;">1️⃣</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">🛍️ 상품 탐색</div><div style="font-size:11px;color:var(--muted);">AI 추천 → 분석 → 알리/타오바오 소스 링크</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
             <div onclick="go('script',document.querySelectorAll('.nav-item')[2])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(124,58,237,.3);">
-              <div style="font-size:24px;">2️⃣</div>
-              <div style="flex:1;">
-                <div style="font-size:13px;font-weight:700;">✍️ 스크립트 생성 — NEW</div>
-                <div style="font-size:11px;color:var(--muted);">상품 분석 데이터 기반 → 실제 스펙/리뷰 반영 스크립트</div>
-              </div>
+              <div style="font-size:22px;">2️⃣</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">✍️ 스크립트 생성</div><div style="font-size:11px;color:var(--muted);">상품 분석 데이터 기반 → 실제 스펙/리뷰 반영</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
             <div onclick="go('sources',document.querySelectorAll('.nav-item')[3])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(16,185,129,.3);">
-              <div style="font-size:24px;">3️⃣</div>
-              <div style="flex:1;">
-                <div style="font-size:13px;font-weight:700;">🎬 영상 소스 수집</div>
-                <div style="font-size:11px;color:var(--muted);">직접 업로드 + Gemini AI 이미지 + Pexels 스톡영상</div>
-              </div>
+              <div style="font-size:22px;">3️⃣</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">🎬 영상 소스 수집 (10구간)</div><div style="font-size:11px;color:var(--muted);">직접 업로드 + Gemini AI + Pexels + Pixabay</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
             <div onclick="go('render',document.querySelectorAll('.nav-item')[4])" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border-radius:8px;cursor:pointer;border:1px solid rgba(6,182,212,.3);">
-              <div style="font-size:24px;">4️⃣</div>
-              <div style="flex:1;">
-                <div style="font-size:13px;font-weight:700;">🚀 영상 자동 합성 + 다운로드</div>
-                <div style="font-size:11px;color:var(--muted);">GitHub Actions + FFmpeg → 컬러 완성 영상</div>
-              </div>
+              <div style="font-size:22px;">4️⃣</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:700;">🚀 영상 자동 합성</div><div style="font-size:11px;color:var(--muted);">빠른 컷 전환 · 핵심 단어 대형 자막 · 컬러</div></div>
               <div style="color:var(--accent);">→</div>
             </div>
           </div>
@@ -250,48 +226,38 @@ input[type=range]{accent-color:var(--accent);}
       <div class="page" id="page-products">
         <div class="card">
           <div class="card-title">🛍️ 상품 탐색</div>
-
-          <!-- 카테고리 선택 -->
           <div class="form-group">
             <label class="form-label">카테고리 선택</label>
             <div class="cat-grid" id="catGridProducts"></div>
           </div>
-          <button class="btn btn-primary" id="recommendBtn" onclick="onRecommend()" disabled style="margin-bottom:20px;">
-            🤖 AI 상품 추천 받기
-          </button>
+          <button class="btn btn-primary" id="recommendBtn" onclick="onRecommend()" disabled style="margin-bottom:20px;">🤖 AI 상품 추천 받기</button>
           <div id="recommendLoading" style="display:none;text-align:center;padding:20px;">
             <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px;">AI가 최적 상품을 분석 중...</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px;">AI가 최적 상품 분석 중...</div>
           </div>
-
-          <!-- 추천 상품 목록 -->
           <div id="productList"></div>
         </div>
-
-        <!-- 상품 분석 패널 -->
         <div class="card" id="analyzePanel" style="display:none;">
           <div class="card-title">🔍 상품 상세 분석</div>
           <div id="selectedProductInfo" style="padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:16px;"></div>
-
           <div class="form-group">
-            <label class="form-label">쿠팡 상품 URL (선택 — 없으면 상품명으로 분석)</label>
+            <label class="form-label">쿠팡 상품 URL (선택)</label>
             <input type="text" class="form-input" id="inp-coupang-url" placeholder="https://www.coupang.com/vp/products/...">
           </div>
           <div class="form-group">
             <label class="form-label">쿠팡파트너스 링크 (수동 입력)</label>
             <div style="display:flex;gap:8px;">
               <input type="text" class="form-input" id="inp-partners-link" placeholder="https://link.coupang.com/a/...">
-              <a href="https://partners.coupang.com" target="_blank" class="btn btn-secondary btn-sm" style="white-space:nowrap;">파트너스 이동 →</a>
+              <a href="https://partners.coupang.com" target="_blank" class="btn btn-secondary btn-sm" style="white-space:nowrap;">파트너스 →</a>
             </div>
-            <div style="font-size:11px;color:var(--muted);margin-top:6px;">쿠팡파트너스에서 상품 검색 후 링크 생성 → 여기에 붙여넣기</div>
           </div>
-
-          <button class="btn btn-primary" id="analyzeBtn" onclick="onAnalyze()">🔍 상세페이지 분석 시작</button>
+          <button class="btn btn-primary" id="analyzeBtn" onclick="onAnalyze()">🔍 분석 시작</button>
           <div id="analyzeLoading" style="display:none;text-align:center;padding:20px;">
             <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
             <div style="font-size:12px;color:var(--muted);margin-top:8px;">상품 분석 중...</div>
           </div>
           <div id="analysisResult"></div>
+          <div id="sourceSearchLinks"></div>
         </div>
       </div>
 
@@ -301,13 +267,7 @@ input[type=range]{accent-color:var(--accent);}
           <div>
             <div class="card">
               <div class="card-title">✍️ 스크립트 생성</div>
-
-              <!-- 분석된 상품 정보 표시 -->
-              <div id="scriptProductInfo" style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-size:13px;color:var(--muted);">
-                먼저 상품 탐색에서 상품을 분석해주세요.
-              </div>
-
-              <!-- 수동 입력 대안 -->
+              <div id="scriptProductInfo" style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-size:13px;color:var(--muted);">먼저 상품 탐색에서 상품을 분석해주세요.</div>
               <div id="manualInputSection">
                 <div style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:10px;background:rgba(245,158,11,.05);border-radius:8px;border:1px solid rgba(245,158,11,.2);">
                   💡 상품 탐색을 건너뛰고 싶다면 아래에 직접 입력하세요.
@@ -325,7 +285,6 @@ input[type=range]{accent-color:var(--accent);}
                   <input type="text" class="form-input" id="inp-link-manual" placeholder="https://link.coupang.com/...">
                 </div>
               </div>
-
               <button class="btn btn-primary" style="width:100%" id="genScriptBtn" onclick="onGenerateScript()">✨ 스크립트 생성</button>
               <div id="genLoading" style="display:none;text-align:center;margin-top:16px;padding:12px;">
                 <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
@@ -343,7 +302,7 @@ input[type=range]{accent-color:var(--accent);}
                 </div>
               </div>
               <div id="scriptOut">
-                <div class="empty"><div class="empty-icon">✍️</div><div class="empty-text">상품을 분석하고<br>스크립트 생성을 클릭하세요</div></div>
+                <div class="empty"><div class="empty-icon">✍️</div><div class="empty-text">스크립트 생성을 클릭하세요</div></div>
               </div>
             </div>
           </div>
@@ -353,14 +312,15 @@ input[type=range]{accent-color:var(--accent);}
       <!-- 3️⃣ 영상 소스 수집 -->
       <div class="page" id="page-sources">
         <div class="card">
-          <div class="card-title">🎬 영상 소스 수집</div>
+          <div class="card-title">🎬 영상 소스 수집 <span style="font-size:11px;color:var(--accent2);font-family:'Space Mono',monospace;">10구간</span></div>
           <div id="sourceScriptInfo" style="padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;font-size:13px;color:var(--muted);">먼저 스크립트를 생성해주세요.</div>
-          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;font-size:12px;"><span>📁</span><span style="color:var(--success);">직접 업로드</span><span style="color:var(--muted);">— 제품 이미지/영상</span></div>
-            <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.3);border-radius:8px;font-size:12px;"><span>🤖</span><span style="color:var(--accent);">Gemini AI</span><span style="color:var(--muted);">— AI 이미지 자동 생성</span></div>
-            <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.3);border-radius:8px;font-size:12px;"><span>🎬</span><span style="color:var(--accent2);">Pexels</span><span style="color:var(--muted);">— 스톡영상</span></div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;font-size:11px;"><span>📁</span><span style="color:var(--success);">직접 업로드</span></div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.3);border-radius:8px;font-size:11px;"><span>🤖</span><span style="color:var(--accent);">Gemini AI</span></div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.3);border-radius:8px;font-size:11px;"><span>🎬</span><span style="color:var(--accent2);">Pexels</span></div>
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;font-size:11px;"><span>🖼️</span><span style="color:var(--accent3);">Pixabay</span></div>
           </div>
-          <button class="btn btn-primary" id="collectBtn" onclick="onCollectSources()" disabled>🔍 AI + Pexels 자동 수집</button>
+          <button class="btn btn-primary" id="collectBtn" onclick="onCollectSources()" disabled>🔍 소스 자동 수집 (10구간)</button>
           <div id="collectLoading" style="display:none;text-align:center;margin-top:20px;padding:20px;">
             <div class="loader"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
             <div style="font-size:12px;color:var(--muted);margin-top:8px;" id="collectStatus">소스 수집 중...</div>
@@ -388,10 +348,10 @@ input[type=range]{accent-color:var(--accent);}
             <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
             <div style="font-size:12px;color:var(--muted);text-align:right;margin-top:6px;" id="progressText">0%</div>
             <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
-              <div class="render-step waiting" id="step-trigger"><div class="render-step-icon">📡</div><div class="render-step-text"><div class="render-step-title">GitHub Actions 트리거</div><div class="render-step-desc">렌더링 워크플로우 실행 요청</div></div></div>
-              <div class="render-step waiting" id="step-tts"><div class="render-step-icon">🎙️</div><div class="render-step-text"><div class="render-step-title">TTS 음성 생성</div><div class="render-step-desc">나레이션 음성 자동 생성</div></div></div>
-              <div class="render-step waiting" id="step-download"><div class="render-step-icon">📥</div><div class="render-step-text"><div class="render-step-title">소스 다운로드</div><div class="render-step-desc">이미지/영상 수집 및 AI 생성</div></div></div>
-              <div class="render-step waiting" id="step-ffmpeg"><div class="render-step-icon">🎬</div><div class="render-step-text"><div class="render-step-title">FFmpeg 합성</div><div class="render-step-desc">컬러 영상 + 자막 + 음성 합성</div></div></div>
+              <div class="render-step waiting" id="step-trigger"><div class="render-step-icon">📡</div><div class="render-step-text"><div class="render-step-title">GitHub Actions 트리거</div><div class="render-step-desc">렌더링 워크플로우 실행</div></div></div>
+              <div class="render-step waiting" id="step-tts"><div class="render-step-icon">🎙️</div><div class="render-step-text"><div class="render-step-title">TTS 음성 생성</div><div class="render-step-desc">나레이션 자동 생성</div></div></div>
+              <div class="render-step waiting" id="step-download"><div class="render-step-icon">📥</div><div class="render-step-text"><div class="render-step-title">소스 수집 (10구간)</div><div class="render-step-desc">Gemini AI 이미지 × 10 생성</div></div></div>
+              <div class="render-step waiting" id="step-ffmpeg"><div class="render-step-icon">🎬</div><div class="render-step-text"><div class="render-step-title">FFmpeg 합성</div><div class="render-step-desc">빠른 컷 전환 · 대형 자막</div></div></div>
               <div class="render-step waiting" id="step-complete"><div class="render-step-icon">✅</div><div class="render-step-text"><div class="render-step-title">완성</div><div class="render-step-desc">다운로드 준비 완료</div></div></div>
             </div>
           </div>
@@ -446,6 +406,10 @@ input[type=range]{accent-color:var(--accent);}
             <div class="key-row"><input type="password" class="form-input" id="key-pexels" placeholder="..."><button class="btn btn-secondary btn-sm" onclick="toggleShow('key-pexels')">👁</button></div>
           </div>
           <div class="settings-section">
+            <div class="settings-title">Pixabay API</div>
+            <div class="key-row"><input type="password" class="form-input" id="key-pixabay" placeholder="..."><button class="btn btn-secondary btn-sm" onclick="toggleShow('key-pixabay')">👁</button></div>
+          </div>
+          <div class="settings-section">
             <div class="settings-title">GitHub Personal Access Token</div>
             <div class="key-row"><input type="password" class="form-input" id="key-github" placeholder="ghp_..."><button class="btn btn-secondary btn-sm" onclick="toggleShow('key-github')">👁</button></div>
           </div>
@@ -475,9 +439,8 @@ const VOICE_MAP = {
   gadget:{name:'ko-KR-Wavenet-C',gender:'MALE',label:'남성 C'},
 };
 
-function convertUnits(text){return text.replace(/(\d+\.?\d*)\s*L\b/g,'$1리터').replace(/(\d+\.?\d*)\s*ml\b/gi,'$1밀리리터').replace(/(\d+\.?\d*)\s*kg\b/g,'$1킬로그램').replace(/(\d+\.?\d*)\s*g\b/g,'$1그램').replace(/(\d+\.?\d*)\s*cm\b/g,'$1센티미터').replace(/(\d+\.?\d*)\s*%/g,'$1퍼센트');}
+function convertUnits(t){return t.replace(/(\d+\.?\d*)\s*L\b/g,'$1리터').replace(/(\d+\.?\d*)\s*ml\b/gi,'$1밀리리터').replace(/(\d+\.?\d*)\s*kg\b/g,'$1킬로그램').replace(/(\d+\.?\d*)\s*g\b/g,'$1그램').replace(/(\d+\.?\d*)\s*cm\b/g,'$1센티미터').replace(/(\d+\.?\d*)\s*%/g,'$1퍼센트');}
 
-// 상태
 let selectedCatProducts = null;
 let selectedCatScript   = null;
 let currentScript       = null;
@@ -487,11 +450,7 @@ let collectedSources    = {};
 let pollTimer  = null;
 let stepTimers = [];
 
-window.onload = () => {
-  renderCatGridProducts();
-  renderCatGridScript();
-  loadKeys(); updateStatus(); updateStats(); renderHistory();
-};
+window.onload = () => { renderCatGridProducts(); renderCatGridScript(); loadKeys(); updateStatus(); updateStats(); renderHistory(); };
 
 const titles = {dashboard:'대시보드',products:'🛍️ 상품 탐색',script:'✍️ 스크립트 생성',sources:'🎬 영상 소스 수집',render:'🚀 영상 생성',history:'📁 히스토리',settings:'⚙️ 설정'};
 function go(page, el) {
@@ -507,12 +466,10 @@ function go(page, el) {
   if (page==='script') updateScriptPageInfo();
 }
 
-// ===== 카테고리 그리드 =====
 function renderCatGridProducts(){
   document.getElementById('catGridProducts').innerHTML = Object.entries(CATEGORIES).map(([key,cat])=>`
     <div class="cat-card" id="catp-${key}" onclick="selectCatProducts('${key}')">
-      <div class="cat-emoji">${cat.emoji}</div>
-      <div class="cat-name">${cat.name}</div>
+      <div class="cat-emoji">${cat.emoji}</div><div class="cat-name">${cat.name}</div>
     </div>`).join('');
 }
 function selectCatProducts(key){
@@ -521,12 +478,10 @@ function selectCatProducts(key){
   selectedCatProducts=key;
   document.getElementById('recommendBtn').disabled=false;
 }
-
 function renderCatGridScript(){
   document.getElementById('catGridScript').innerHTML = Object.entries(CATEGORIES).map(([key,cat])=>`
     <div class="cat-card" id="cats-${key}" onclick="selectCatScript('${key}')">
-      <div class="cat-emoji">${cat.emoji}</div>
-      <div class="cat-name">${cat.name}</div>
+      <div class="cat-emoji">${cat.emoji}</div><div class="cat-name">${cat.name}</div>
     </div>`).join('');
 }
 function selectCatScript(key){
@@ -535,43 +490,35 @@ function selectCatScript(key){
   selectedCatScript=key;
 }
 
-// ===== 1단계: 상품 추천 =====
+// ===== 상품 추천 =====
 async function onRecommend(){
-  if (!selectedCatProducts) { showError('카테고리를 선택해주세요'); return; }
+  if (!selectedCatProducts){showError('카테고리를 선택해주세요');return;}
   document.getElementById('recommendBtn').disabled=true;
   document.getElementById('recommendLoading').style.display='block';
   document.getElementById('productList').innerHTML='';
   document.getElementById('analyzePanel').style.display='none';
-
   const result = await recommendProducts(selectedCatProducts);
   document.getElementById('recommendLoading').style.display='none';
   document.getElementById('recommendBtn').disabled=false;
   if (!result) return;
-
   renderProductList(result.products);
 }
 
 function renderProductList(products){
   const container = document.getElementById('productList');
   container.innerHTML = `<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">👆 상품을 클릭해서 분석을 시작하세요</div>`;
-  products.forEach(p => {
+  products.forEach(p=>{
     const div = document.createElement('div');
-    div.className = 'product-card';
-    div.id = `prod-${p.rank}`;
-    div.innerHTML = `
+    div.className='product-card'; div.id=`prod-${p.rank}`;
+    div.innerHTML=`
       <div class="product-rank">${p.rank}</div>
       <div class="product-info">
         <div class="product-name">${p.name}</div>
-        <div class="product-meta">
-          <span>💰 ${p.price_range}</span>
-          <span>🔍 "${p.search_keyword}"</span>
-          <span class="product-type ${p.pain_or_wow==='wow'?'type-wow':'type-pain'}">${p.pain_or_wow==='wow'?'✨ WOW':'⚡ PAIN'}</span>
-        </div>
+        <div class="product-meta"><span>💰 ${p.price_range}</span><span>🔍 "${p.search_keyword}"</span><span class="product-type ${p.pain_or_wow==='wow'?'type-wow':'type-pain'}">${p.pain_or_wow==='wow'?'✨ WOW':'⚡ PAIN'}</span></div>
         <div class="product-why">💡 ${p.why}</div>
       </div>
-      <div style="color:var(--accent);font-size:18px;">→</div>
-    `;
-    div.onclick = () => selectProduct(p);
+      <div style="color:var(--accent);font-size:18px;">→</div>`;
+    div.onclick=()=>selectProduct(p);
     container.appendChild(div);
   });
 }
@@ -579,45 +526,40 @@ function renderProductList(products){
 function selectProduct(p){
   document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById(`prod-${p.rank}`).classList.add('selected');
-  currentProduct = p;
-
-  // 분석 패널 표시
+  currentProduct=p;
   document.getElementById('analyzePanel').style.display='block';
-  document.getElementById('selectedProductInfo').innerHTML = `
-    <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${p.emoji||''} ${p.name}</div>
+  document.getElementById('selectedProductInfo').innerHTML=`
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${p.name}</div>
     <div style="font-size:12px;color:var(--muted);">💰 ${p.price_range} · 🔍 "${p.search_keyword}"</div>
-    <div style="font-size:12px;color:var(--accent2);margin-top:4px;">💡 ${p.why}</div>
-  `;
+    <div style="font-size:12px;color:var(--accent2);margin-top:4px;">💡 ${p.why}</div>`;
   document.getElementById('analysisResult').innerHTML='';
+  document.getElementById('sourceSearchLinks').innerHTML='';
   document.getElementById('analyzePanel').scrollIntoView({behavior:'smooth'});
 }
 
-// ===== 2단계: 상세페이지 분석 =====
+// ===== 상품 분석 =====
 async function onAnalyze(){
-  if (!currentProduct) { showError('상품을 선택해주세요'); return; }
+  if (!currentProduct){showError('상품을 선택해주세요');return;}
   const url  = document.getElementById('inp-coupang-url').value.trim();
   const link = document.getElementById('inp-partners-link').value.trim();
-
   document.getElementById('analyzeBtn').disabled=true;
   document.getElementById('analyzeLoading').style.display='block';
   document.getElementById('analysisResult').innerHTML='';
-
+  document.getElementById('sourceSearchLinks').innerHTML='';
   const analysis = await analyzeProduct(url, currentProduct.name);
   document.getElementById('analyzeLoading').style.display='none';
   document.getElementById('analyzeBtn').disabled=false;
   if (!analysis) return;
-
-  currentAnalysis = analysis;
-  currentAnalysis.coupangLink = link;
-  currentAnalysis.categoryKey = selectedCatProducts;
-
-renderAnalysisResult(analysis);
+  currentAnalysis=analysis;
+  currentAnalysis.coupangLink=link;
+  currentAnalysis.categoryKey=selectedCatProducts;
+  renderAnalysisResult(analysis);
   showSuccess('분석 완료! 스크립트 생성으로 이동하세요.');
 }
 
 function renderAnalysisResult(a){
   const el = document.getElementById('analysisResult');
-  el.innerHTML = `
+  el.innerHTML=`
     <div class="analysis-block" style="margin-top:16px;">
       <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:14px;">✅ 분석 완료</div>
       <div class="analysis-row"><div class="analysis-key">핵심 기능</div><div class="analysis-val">${a.core_function}</div></div>
@@ -628,27 +570,16 @@ function renderAnalysisResult(a){
       <div class="analysis-row"><div class="analysis-key">시각 장면</div><div class="analysis-val"><div class="chip-wrap">${(a.visual_scenes||[]).map(s=>`<span class="chip chip-green">${s}</span>`).join('')}</div></div></div>
       <div class="analysis-row"><div class="analysis-key">권장 유형</div><div class="analysis-val"><span class="badge ${a.recommended_type==='wow'?'badge-wow':'badge-pain'}">${a.recommended_type==='wow'?'✨ WOW형':'⚡ PAIN형'}</span></div></div>
     </div>
-    <div id="sourceSearchLinks"></div>
-    <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="go('script',document.querySelectorAll('.nav-item')[2])">
-      ✍️ 스크립트 생성으로 이동 →
-    </button>
+    <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="go('script',document.querySelectorAll('.nav-item')[2])">✍️ 스크립트 생성으로 이동 →</button>
   `;
   renderSourceSearchLinks(a.product_name, 'sourceSearchLinks');
 }
 
-// ===== 스크립트 페이지 상태 =====
+// ===== 스크립트 페이지 =====
 function updateScriptPageInfo(){
-  const info = document.getElementById('scriptProductInfo');
-  if (currentAnalysis) {
-    info.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-weight:700;color:var(--text);">${currentAnalysis.product_name}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${currentAnalysis.core_function}</div>
-        </div>
-        <span class="badge ${currentAnalysis.recommended_type==='wow'?'badge-wow':'badge-pain'}">${currentAnalysis.recommended_type==='wow'?'✨ WOW형':'⚡ PAIN형'}</span>
-      </div>
-    `;
+  const info=document.getElementById('scriptProductInfo');
+  if (currentAnalysis){
+    info.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;"><div><div style="font-weight:700;color:var(--text);">${currentAnalysis.product_name}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${currentAnalysis.core_function}</div></div><span class="badge ${currentAnalysis.recommended_type==='wow'?'badge-wow':'badge-pain'}">${currentAnalysis.recommended_type==='wow'?'✨ WOW형':'⚡ PAIN형'}</span></div>`;
     info.style.borderColor='rgba(16,185,129,.4)';
     document.getElementById('manualInputSection').style.display='none';
   } else {
@@ -658,195 +589,183 @@ function updateScriptPageInfo(){
   }
 }
 
-// ===== 스크립트 생성 =====
 async function onGenerateScript(){
-  const btn = document.getElementById('genScriptBtn');
+  const btn=document.getElementById('genScriptBtn');
   btn.disabled=true;
   document.getElementById('genLoading').style.display='block';
   document.getElementById('scriptOut').innerHTML='';
   document.getElementById('scriptActions').style.display='none';
-
-  let script = null;
-
-  if (currentAnalysis) {
-    // 분석 데이터 기반
-    document.getElementById('genStatus').textContent = '분석 데이터 기반 스크립트 생성 중...';
-    const link = document.getElementById('inp-partners-link')?.value?.trim() || currentAnalysis.coupangLink || '';
-    script = await generateScriptFromAnalysis(currentAnalysis, currentAnalysis.categoryKey || selectedCatScript || 'pet', link);
+  let script=null;
+  if (currentAnalysis){
+    document.getElementById('genStatus').textContent='분석 데이터 기반 스크립트 생성 중...';
+    const link=document.getElementById('inp-partners-link')?.value?.trim()||currentAnalysis.coupangLink||'';
+    script=await generateScriptFromAnalysis(currentAnalysis,currentAnalysis.categoryKey||selectedCatScript||'pet',link);
   } else {
-    // 수동 입력 기반
-    const product = document.getElementById('inp-product-manual').value.trim();
-    const link    = document.getElementById('inp-link-manual').value.trim();
-    if (!product) { showError('상품명을 입력해주세요'); btn.disabled=false; document.getElementById('genLoading').style.display='none'; return; }
-    if (!selectedCatScript) { showError('카테고리를 선택해주세요'); btn.disabled=false; document.getElementById('genLoading').style.display='none'; return; }
-    document.getElementById('genStatus').textContent = '상품 분석 중...';
-    const analysis = await analyzeProduct('', product);
-    if (analysis) {
-      document.getElementById('genStatus').textContent = '스크립트 생성 중...';
-      script = await generateScriptFromAnalysis(analysis, selectedCatScript, link);
-    }
+    const product=document.getElementById('inp-product-manual').value.trim();
+    const link=document.getElementById('inp-link-manual').value.trim();
+    if (!product){showError('상품명을 입력해주세요');btn.disabled=false;document.getElementById('genLoading').style.display='none';return;}
+    if (!selectedCatScript){showError('카테고리를 선택해주세요');btn.disabled=false;document.getElementById('genLoading').style.display='none';return;}
+    document.getElementById('genStatus').textContent='상품 분석 중...';
+    const analysis=await analyzeProduct('',product);
+    if (analysis){document.getElementById('genStatus').textContent='스크립트 생성 중...';script=await generateScriptFromAnalysis(analysis,selectedCatScript,link);}
   }
-
   btn.disabled=false;
   document.getElementById('genLoading').style.display='none';
   if (!script) return;
-
-  currentScript = script;
+  currentScript=script;
   renderScript(script);
   saveToHistory(script);
   updateStats();
   showSuccess('스크립트 생성 완료!');
 }
 
-// ===== 스크립트 렌더링 =====
 function renderScript(s){
-  const isWow = s.type==='wow';
-  let html=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-      <span class="badge ${isWow?'badge-wow':'badge-pain'}">${isWow?'✨ WOW형':'⚡ PAIN형'}</span>
-      <span style="font-size:12px;color:var(--muted);">${s.category.emoji} ${s.category.name}</span>
-    </div>
-    <div class="script-block">
-  `;
-  if (isWow){html+=sec('💡 WOW 포인트',s.wow_selected);html+=sec('⚡ 오프닝 (0~3초)',s.opening,'극빠름 컷 · 1.2배속');html+=sec('🔍 증명 (3~10초)',s.proof,'느린 컷 · 0.8배속');html+=sec('🎯 활용 (10~22초)',s.usage,'보통 컷 · 1.05배속');}
-  else{html+=sec('💡 선택된 PAIN',s.pain_selected);html+=sec('⚡ 오프닝 (0~3초)',s.opening,'빠른 컷 · 1.15배속');html+=sec('💭 공감 (3~10초)',s.empathy,'보통 컷 · 1.0배속');html+=sec('✅ 해결 (10~22초)',s.solution,'변화 컷 · 0.8~1.0배속');}
-  html+=sec('🔗 CTA (22~30초)',s.cta,'빠른 컷 · 1.0배속');
-  html+=`
-      <div class="script-section"><div class="script-label">🏷️ 해시태그</div><div class="tag-wrap">${(s.hashtags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div></div>
-      <div class="script-section"><div class="script-label">📌 유튜브 제목</div><div class="script-text" style="font-weight:700;">${s.youtube_title}</div></div>
-      <div class="script-section"><div class="script-label">📝 설명란</div><div class="script-text" style="font-size:12px;color:var(--muted);white-space:pre-line;">${s.description}</div></div>
-    </div>
+  const isWow=s.type==='wow';
+  let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span class="badge ${isWow?'badge-wow':'badge-pain'}">${isWow?'✨ WOW형':'⚡ PAIN형'}</span><span style="font-size:12px;color:var(--muted);">${s.category.emoji} ${s.category.name}</span></div><div class="script-block">`;
+  if (isWow){html+=sec('💡 WOW 포인트',s.wow_selected);html+=sec('⚡ 오프닝',s.opening,'극빠름');html+=sec('🔍 증명',s.proof,'느린 컷');html+=sec('🎯 활용',s.usage,'보통');}
+  else{html+=sec('💡 선택된 PAIN',s.pain_selected);html+=sec('⚡ 오프닝',s.opening,'극빠름');html+=sec('💭 공감',s.empathy,'보통');html+=sec('✅ 해결',s.solution,'변화');}
+  html+=sec('🔗 CTA',s.cta,'빠른');
+  html+=`<div class="script-section"><div class="script-label">🏷️ 해시태그</div><div class="tag-wrap">${(s.hashtags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div></div>
+    <div class="script-section"><div class="script-label">📌 유튜브 제목</div><div class="script-text" style="font-weight:700;">${s.youtube_title}</div></div>
+    <div class="script-section"><div class="script-label">📝 설명란</div><div class="script-text" style="font-size:12px;color:var(--muted);white-space:pre-line;">${s.description}</div></div></div>
     <div style="margin-top:12px;padding:12px;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);border-radius:8px;font-size:12px;color:var(--accent2);">
       💡 완료 후 → <strong style="cursor:pointer;text-decoration:underline;" onclick="go('sources',document.querySelectorAll('.nav-item')[3])">🎬 영상 소스 수집</strong>으로 이동하세요
-    </div>
-  `;
+    </div>`;
   document.getElementById('scriptOut').innerHTML=html;
   document.getElementById('scriptActions').style.display='flex';
-  renderVoiceSelector(s.category?.key || selectedCatScript || 'gadget');
+  renderVoiceSelector(s.category?.key||selectedCatScript||'gadget');
 }
-
 function sec(label,text,timing){return `<div class="script-section"><div class="script-label">${label}</div>${timing?`<div style="font-size:10px;color:var(--accent3);font-family:'Space Mono',monospace;margin-bottom:4px;">${timing}</div>`:''}<div class="script-text">${text||''}</div></div>`;}
 
 // ===== 소스 수집 =====
 function updateSourcePageInfo(){
   const info=document.getElementById('sourceScriptInfo');const btn=document.getElementById('collectBtn');
-  if (currentScript){info.innerHTML=`<span style="color:var(--text);font-weight:700;">${currentScript.category?.emoji} ${currentScript.product}</span> <span style="color:var(--muted);">— ${currentScript.type==='wow'?'WOW형':'PAIN형'} 스크립트 준비됨</span>`;info.style.borderColor='rgba(16,185,129,.4)';btn.disabled=false;}
+  if (currentScript){info.innerHTML=`<span style="color:var(--text);font-weight:700;">${currentScript.category?.emoji} ${currentScript.product}</span> <span style="color:var(--muted);">— ${currentScript.type==='wow'?'WOW형':'PAIN형'} · 10구간 수집</span>`;info.style.borderColor='rgba(16,185,129,.4)';btn.disabled=false;}
   else{info.textContent='먼저 스크립트를 생성해주세요.';info.style.borderColor='var(--border)';btn.disabled=true;}
 }
 
-async function generateKeywordsWithClaude(script){
-  const claudeKey=CONFIG.get(CONFIG.KEYS.CLAUDE);if(!claudeKey)return null;
-  const isWow=script.type==='wow';const product=script.product||'';
-  const secKey2=isWow?'proof':'empathy';const secKey3=isWow?'usage':'solution';
-  const texts=isWow?{opening:script.opening,proof:script.proof,usage:script.usage,cta:script.cta}:{opening:script.opening,empathy:script.empathy,solution:script.solution,cta:script.cta};
-  const prompt=`You are a Pexels video search expert. Product: ${product}
-For each section, generate the BEST 2-4 word English keyword for Pexels video search. Each must be DIFFERENT.
-Return ONLY raw JSON, no markdown, no backticks.
-opening: "${texts.opening}"
-${secKey2}: "${texts[secKey2]}"
-${secKey3}: "${texts[secKey3]}"
-cta: "${texts.cta}"
-Format: {"opening":"kw1","${secKey2}":"kw2","${secKey3}":"kw3","cta":"kw4"}`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':claudeKey,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();let text=data.content[0].text.replace(/```json/gi,'').replace(/```/g,'').trim();
-    const match=text.match(/\{[^}]+\}/);if(!match)throw new Error('no JSON');return JSON.parse(match[0]);
-  }catch(e){console.error('키워드 실패:',e);return{opening:`${product} problem`,[secKey2]:'daily struggle',[secKey3]:`${product} solution`,cta:'online shopping'};}
-}
-
-async function fetchPexelsVideos(keyword,perPage=3){
-  const key=CONFIG.get(CONFIG.KEYS.PEXELS);if(!key)return[];
-  try{const res=await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(keyword)}&per_page=${perPage}&orientation=portrait`,{headers:{Authorization:key}});const data=await res.json();return(data.videos||[]).map(v=>({id:v.id,thumb:v.image,url:v.video_files?.find(f=>f.quality==='sd')?.link||v.video_files?.[0]?.link,duration:v.duration}));}catch{return[];}
-}
-
-async function generateGeminiImage(prompt){
-  const key=CONFIG.get(CONFIG.KEYS.GEMINI);if(!key)return null;
-  try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['TEXT','IMAGE']}})});
-    const data=await res.json();if(data.error){console.error('Gemini:',data.error);return null;}
-    const imgPart=data.candidates?.[0]?.content?.parts?.find(p=>p.inlineData);if(!imgPart)return null;
-    return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
-  }catch(e){console.error('Gemini 실패:',e);return null;}
-}
-
 async function onCollectSources(){
-  if(!currentScript){showError('먼저 스크립트를 생성해주세요');return;}
+  if (!currentScript){showError('먼저 스크립트를 생성해주세요');return;}
   const btn=document.getElementById('collectBtn');btn.disabled=true;
   document.getElementById('collectLoading').style.display='block';
-  document.getElementById('sourcesOut').innerHTML='';collectedSources={};
-  const product=currentScript.product||'';const isWow=currentScript.type==='wow';
-  document.getElementById('collectStatus').textContent='Claude로 키워드 생성 중...';
-  const keywords=await generateKeywordsWithClaude(currentScript);
+  document.getElementById('sourcesOut').innerHTML='';
+  collectedSources={};
 
-  // 상품 분석 데이터로 더 정확한 AI 프롬프트
-  const a=currentScript.analysis;
-  const aiPrompts=isWow?{
-    opening:`${a?.visual_scenes?.[0]||product} dramatic cinematic shot, dark background, high contrast, photorealistic, vertical portrait 9:16`,
-    proof:`${product} product detail close-up, white studio, professional photography, vertical portrait 9:16`,
+  const sections=getSections(currentScript.type);
+  document.getElementById('collectStatus').textContent='Claude로 구간별 키워드 생성 중...';
+  const keywords=await generateSectionKeywords(currentScript,sections);
+
+  const product=currentScript.product||'';
+  const analysis=currentScript.analysis||{};
+  const mainPain=(analysis.main_pains||[''])[0];
+  const visualScene=(analysis.visual_scenes||[''])[0];
+  const isWow=currentScript.type==='wow';
+
+  const aiPromptMap=isWow?{
+    opening_1:`Extreme close-up of ${product}, dark dramatic background, neon lighting, mystery, vertical 9:16`,
+    opening_2:`${product} surprising feature reveal, cinematic dramatic, vertical 9:16`,
+    proof_1:`${product} specs detail macro shot, white studio, professional product photography, vertical 9:16`,
+    proof_2:`${product} close-up detail, high contrast studio lighting, vertical 9:16`,
+    proof_3:`${product} in action dynamic shot, colorful, vertical 9:16`,
+    usage_1:`Person reaching for ${product} with anticipation, warm lighting, vertical 9:16`,
+    usage_2:`Person using ${product} happily, lifestyle, bright colors, vertical 9:16`,
+    usage_3:`Person satisfied after using ${product}, bright smile, vertical 9:16`,
+    cta_1:`${product} product hero shot, premium minimal background, vertical 9:16`,
+    cta_2:`${product} with lifestyle background, call to action feel, vertical 9:16`,
   }:{
-    opening:`Person showing frustration about "${a?.main_pains?.[0]||'daily problem'}", cinematic lighting, dark moody, close-up, vertical portrait 9:16, photorealistic`,
-    solution:`Person smiling with satisfaction using ${product}, "${a?.visual_scenes?.[1]||'lifestyle'}", bright warm lighting, vertical portrait 9:16, photorealistic`,
+    opening_1:`Korean person looking extremely frustrated, dramatic dark lighting, close-up face, vertical 9:16`,
+    opening_2:`"${mainPain}" problem situation, realistic, dark moody, vertical 9:16`,
+    empathy_1:`Person struggling with daily inconvenience, stressed expression, realistic, vertical 9:16`,
+    empathy_2:`Close-up of problem "${mainPain}", detailed realistic shot, vertical 9:16`,
+    empathy_3:`Person giving up in frustration, relatable, cinematic, vertical 9:16`,
+    solution_1:`${product} appearing as solution, dramatic reveal lighting, vertical 9:16`,
+    solution_2:`Person using ${product}, "${visualScene||'lifestyle'}", warm natural light, vertical 9:16`,
+    solution_3:`Person smiling with relief using ${product}, satisfied, bright, vertical 9:16`,
+    cta_1:`${product} product shot, minimal background, premium, vertical 9:16`,
+    cta_2:`Person holding ${product} happily, thumbs up, bright, vertical 9:16`,
   };
 
-  const sections=isWow
-    ?[{key:'opening',label:'⚡ 오프닝 (0~3초)',aiPrompt:aiPrompts.opening},{key:'proof',label:'🔍 증명 (3~10초)',aiPrompt:aiPrompts.proof},{key:'usage',label:'🎯 활용 (10~22초)',aiPrompt:null},{key:'cta',label:'🔗 CTA (22~30초)',aiPrompt:null}]
-    :[{key:'opening',label:'⚡ 오프닝 (0~3초)',aiPrompt:aiPrompts.opening},{key:'empathy',label:'💭 공감 (3~10초)',aiPrompt:null},{key:'solution',label:'✅ 해결 (10~22초)',aiPrompt:aiPrompts.solution},{key:'cta',label:'🔗 CTA (22~30초)',aiPrompt:null}];
+  for (const sec of sections){
+    const kw=keywords?.[sec.key]||product;
+    document.getElementById('collectStatus').textContent=`"${sec.label}" 소스 수집 중...`;
 
-  for(const s of sections){
-    const kw=keywords?.[s.key]||product;
-    document.getElementById('collectStatus').textContent=`"${s.label}" 수집 중...`;
-    const videos=await fetchPexelsVideos(kw,3);
+    const [pexelsVideos,pixabayVideos,pixabayImages]=await Promise.all([
+      fetchPexelsVideos(kw,2),
+      fetchPixabayVideos(kw,2),
+      fetchPixabayImages(kw,2),
+    ]);
+
     let aiImg=null;
-    if(s.aiPrompt){document.getElementById('collectStatus').textContent=`"${s.label}" AI 이미지 생성 중...`;aiImg=await generateGeminiImage(s.aiPrompt);}
-    collectedSources[s.key]={videos,aiImage:aiImg,selected:null,keyword:kw};
-    renderSourceSection(s.key,s.label,videos,aiImg,kw);
+    const aiPrompt=aiPromptMap[sec.key];
+    if (aiPrompt){
+      document.getElementById('collectStatus').textContent=`"${sec.label}" AI 이미지 생성 중...`;
+      aiImg=await generateGeminiImage(aiPrompt);
+    }
+
+    const allVideos=[...pexelsVideos,...pixabayVideos];
+    const allImages=pixabayImages;
+    collectedSources[sec.key]={videos:allVideos,images:allImages,aiImage:aiImg,selected:null,keyword:kw};
+    renderSourceSection(sec.key,sec.label,sec.desc,allVideos,allImages,aiImg,kw);
   }
 
   document.getElementById('collectLoading').style.display='none';btn.disabled=false;
-  const dl=document.createElement('div');dl.style.cssText='margin-top:20px;padding:16px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.3);border-radius:10px;';
-  dl.innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ 수집 완료</div><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">각 구간에서 원하는 소스를 선택하세요. 직접 업로드 탭에서 제품 이미지도 업로드 가능합니다.</div><button class="btn btn-primary btn-sm" onclick="go('render',document.querySelectorAll('.nav-item')[4])">🚀 영상 생성으로 이동 →</button>`;
-  document.getElementById('sourcesOut').appendChild(dl);showSuccess('소스 수집 완료!');
+  const dl=document.createElement('div');
+  dl.style.cssText='margin-top:20px;padding:16px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.3);border-radius:10px;';
+  dl.innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px;">✅ 10구간 수집 완료</div><div style="font-size:12px;color:var(--muted);margin-bottom:12px;">각 구간에서 원하는 소스를 선택하세요.</div><button class="btn btn-primary btn-sm" onclick="go('render',document.querySelectorAll('.nav-item')[4])">🚀 영상 생성으로 이동 →</button>`;
+  document.getElementById('sourcesOut').appendChild(dl);
+  showSuccess('10구간 소스 수집 완료!');
 }
 
-function renderSourceSection(key,label,videos,aiImage,keyword){
+function renderSourceSection(key,label,desc,videos,images,aiImage,keyword){
   const container=document.getElementById('sourcesOut');
   const sec=document.createElement('div');sec.className='source-section';sec.id=`section-${key}`;
   sec.innerHTML=`
-    <div class="source-section-header"><div class="source-section-title">${label}</div><div style="font-size:10px;color:var(--muted);">키워드: "${keyword||''}"</div></div>
+    <div class="source-section-header">
+      <div class="source-section-title">${label}</div>
+      <div style="font-size:10px;color:var(--muted);">${desc} · "${keyword}"</div>
+    </div>
     <div class="source-tabs">
-      <div class="source-tab active" onclick="switchTab('${key}','upload',this)">📁 직접 업로드</div>
-      <div class="source-tab" onclick="switchTab('${key}','ai',this)">🤖 Gemini AI</div>
-      <div class="source-tab" onclick="switchTab('${key}','pexels',this)">🎬 Pexels</div>
+      <div class="source-tab active" onclick="switchTab('${key}','upload',this)">📁 업로드</div>
+      <div class="source-tab" onclick="switchTab('${key}','ai',this)">🤖 AI</div>
+      <div class="source-tab" onclick="switchTab('${key}','video',this)">🎬 영상(${videos.length})</div>
+      <div class="source-tab" onclick="switchTab('${key}','image',this)">🖼️ 이미지(${images.length})</div>
     </div>
     <div id="tab-${key}-upload">
       <div class="upload-zone" onclick="document.getElementById('file-${key}').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleFileDrop(event,'${key}')">
-        <div style="font-size:32px;margin-bottom:8px;">📁</div>
-        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">이미지/영상 업로드</div>
-        <div style="font-size:11px;color:var(--muted);">JPG, PNG, MP4 지원 · 클릭 또는 드래그</div>
+        <div style="font-size:24px;margin-bottom:4px;">📁</div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:2px;">이미지/영상 업로드</div>
+        <div style="font-size:10px;color:var(--muted);">JPG, PNG, MP4 · 클릭 또는 드래그</div>
         <input type="file" id="file-${key}" accept="image/*,video/*" style="display:none" onchange="handleFileSelect(event,'${key}')">
       </div>
-      <div id="upload-preview-${key}" style="margin-top:10px;display:none;">
-        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;">
-          <img id="upload-img-${key}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" alt="">
-          <div style="flex:1;font-size:12px;color:var(--success);" id="upload-name-${key}"></div>
+      <div id="upload-preview-${key}" style="display:none;margin-top:8px;">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:8px;">
+          <img id="upload-img-${key}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" alt="">
+          <div style="flex:1;font-size:11px;color:var(--success);" id="upload-name-${key}"></div>
           <button onclick="clearUpload('${key}')" class="btn btn-danger btn-sm">✕</button>
         </div>
       </div>
     </div>
     <div id="tab-${key}-ai" style="display:none;">
-      ${aiImage?`<div class="source-grid"><div class="source-card" onclick="selectSource('${key}','ai',null,this)"><span class="source-card-type type-ai">AI</span><img src="${aiImage}" alt="AI 생성"><div class="source-card-label">Gemini AI 생성</div></div></div>`:`<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px;">AI 이미지 없음</div>`}
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="regenAI('${key}')">↺ AI 이미지 재생성</button>
+      ${aiImage?`<div class="source-grid"><div class="source-card" onclick="selectSource('${key}','ai',null,this)"><span class="source-card-type type-ai">AI</span><img src="${aiImage}" alt="AI"><div class="source-card-label">Gemini AI</div></div></div>`:`<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">AI 이미지 없음</div>`}
+      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenAI('${key}')">↺ AI 재생성</button>
     </div>
-    <div id="tab-${key}-pexels" style="display:none;">
-      <div class="source-grid" id="grid-${key}">${videos.length===0?`<div style="padding:20px;color:var(--muted);font-size:13px;grid-column:1/-1;">검색 결과 없음</div>`:videos.map((v,i)=>`<div class="source-card" onclick="selectSource('${key}',${i},null,this)"><span class="source-card-type type-video">영상</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration}초 · Pexels</div></div>`).join('')}</div>
-      <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="regenPexels('${key}')">↺ 재검색</button>
+    <div id="tab-${key}-video" style="display:none;">
+      <div class="source-grid" id="grid-video-${key}">
+        ${videos.length===0?`<div style="padding:16px;color:var(--muted);font-size:12px;grid-column:1/-1;">검색 결과 없음</div>`:videos.map((v,i)=>`<div class="source-card" onclick="selectSourceVideo('${key}',${i},this)"><span class="source-card-type type-video">${v.source==='pixabay'?'Pixabay':'Pexels'}</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration||''}초</div></div>`).join('')}
+      </div>
+      <button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenVideos('${key}')">↺ 재검색</button>
+    </div>
+    <div id="tab-${key}-image" style="display:none;">
+      <div class="source-grid" id="grid-image-${key}">
+        ${images.length===0?`<div style="padding:16px;color:var(--muted);font-size:12px;grid-column:1/-1;">검색 결과 없음</div>`:images.map((img,i)=>`<div class="source-card" onclick="selectSourceImage('${key}',${i},this)"><span class="source-card-type type-ai" style="background:rgba(245,158,11,.85);">Pixabay</span><img src="${img.thumb}" alt="" style="aspect-ratio:9/16;object-fit:cover;"><div class="source-card-label">이미지</div></div>`).join('')}
+      </div>
     </div>
   `;
   container.appendChild(sec);
 }
 
 function switchTab(key,tab,el){
-  ['upload','ai','pexels'].forEach(t=>{document.getElementById(`tab-${key}-${t}`).style.display=t===tab?'block':'none';});
+  ['upload','ai','video','image'].forEach(t=>{const el2=document.getElementById(`tab-${key}-${t}`);if(el2)el2.style.display=t===tab?'block':'none';});
   document.querySelectorAll(`#section-${key} .source-tab`).forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
 }
@@ -859,13 +778,13 @@ function processUploadedFile(file,key){
   reader.onload=(e)=>{
     const base64=e.target.result;
     collectedSources[key]=collectedSources[key]||{};
-    collectedSources[key].selected={idx:'upload',data:{base64,type:file.type,name:file.name}};
+    collectedSources[key].selected={idx:'upload',type:'upload',data:{base64,type:file.type,name:file.name}};
     const preview=document.getElementById(`upload-preview-${key}`);
     const img=document.getElementById(`upload-img-${key}`);
     const nameEl=document.getElementById(`upload-name-${key}`);
-    if(file.type.startsWith('image/'))img.src=base64; else img.style.display='none';
-    preview.style.display='block';nameEl.textContent=`✅ ${file.name} 선택됨`;
-    showSuccess(`${key} 구간 업로드 완료!`);
+    if(file.type.startsWith('image/'))img.src=base64;else img.style.display='none';
+    preview.style.display='block';nameEl.textContent=`✅ ${file.name}`;
+    showSuccess(`${key} 업로드 완료!`);
   };
   reader.readAsDataURL(file);
 }
@@ -877,34 +796,58 @@ function clearUpload(key){
 }
 
 function selectSource(key,idx,aiKey,cardEl){
-  document.querySelectorAll(`#grid-${key} .source-card`).forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll(`#tab-${key}-ai .source-card`).forEach(c=>c.classList.remove('selected'));
   if(cardEl)cardEl.classList.add('selected');
-  if(idx==='ai'){collectedSources[key]=collectedSources[key]||{};collectedSources[key].selected={idx:'ai',data:{}};}
-  else{const v=collectedSources[key]?.videos?.[idx];if(v)collectedSources[key].selected={idx,data:{url:v.url,duration:v.duration}};}
-  showSuccess('선택 완료!');
+  collectedSources[key]=collectedSources[key]||{};
+  collectedSources[key].selected={idx:'ai',type:'ai',data:{}};
+  showSuccess('AI 이미지 선택!');
+}
+
+function selectSourceVideo(key,idx,cardEl){
+  document.querySelectorAll(`#grid-video-${key} .source-card`).forEach(c=>c.classList.remove('selected'));
+  if(cardEl)cardEl.classList.add('selected');
+  const v=collectedSources[key]?.videos?.[idx];
+  if(v)collectedSources[key].selected={idx,type:'video',data:{url:v.url,duration:v.duration}};
+  showSuccess('영상 선택!');
+}
+
+function selectSourceImage(key,idx,cardEl){
+  document.querySelectorAll(`#grid-image-${key} .source-card`).forEach(c=>c.classList.remove('selected'));
+  if(cardEl)cardEl.classList.add('selected');
+  const img=collectedSources[key]?.images?.[idx];
+  if(img)collectedSources[key].selected={idx,type:'image',data:{url:img.url}};
+  showSuccess('이미지 선택!');
 }
 
 async function regenAI(key){
   if(!currentScript)return;
-  const product=currentScript.product||'';const a=currentScript.analysis;
+  const product=currentScript.product||'';const a=currentScript.analysis||{};
   const isWow=currentScript.type==='wow';
-  const prompts=isWow?{opening:`${product} dramatic cinematic, dark neon lighting, vertical portrait 9:16`,proof:`${product} product detail, white studio, vertical portrait 9:16`}:{opening:`Person frustrated about "${a?.main_pains?.[0]||'problem'}", dark moody, vertical portrait 9:16`,solution:`Person happy using ${product}, warm lighting, vertical portrait 9:16`};
-  const prompt=prompts[key]||`${product} product photography, vertical portrait 9:16`;
+  const prompts={
+    opening_1:`${product} dramatic cinematic, dark neon lighting, vertical 9:16`,
+    opening_2:`${product} surprising reveal, cinematic, vertical 9:16`,
+    empathy_1:`Person stressed and frustrated, dark moody, vertical 9:16`,
+    solution_1:`${product} product hero shot, clean background, vertical 9:16`,
+    solution_2:`Person happy using ${product}, warm lifestyle, vertical 9:16`,
+  };
+  const prompt=prompts[key]||`${product} product photography, vertical 9:16`;
   const container=document.getElementById(`tab-${key}-ai`);
-  container.innerHTML='<div style="padding:16px;color:var(--muted);font-size:12px;">AI 이미지 생성 중...</div>';
+  container.innerHTML='<div style="padding:12px;color:var(--muted);font-size:11px;">AI 이미지 생성 중...</div>';
   const aiImg=await generateGeminiImage(prompt);
   if(aiImg){
     collectedSources[key]=collectedSources[key]||{};collectedSources[key].aiImage=aiImg;
-    container.innerHTML=`<div class="source-grid"><div class="source-card" onclick="selectSource('${key}','ai',null,this)"><span class="source-card-type type-ai">AI</span><img src="${aiImg}" alt="AI"><div class="source-card-label">Gemini AI 생성</div></div></div><button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="regenAI('${key}')">↺ 재생성</button>`;
-    showSuccess('재생성 완료!');
-  }else{container.innerHTML='<div style="padding:20px;text-align:center;color:var(--danger);font-size:13px;">생성 실패</div><button class="btn btn-secondary btn-sm" onclick="regenAI(\''+key+'\')">↺ 재시도</button>';}
+    container.innerHTML=`<div class="source-grid"><div class="source-card" onclick="selectSource('${key}','ai',null,this)"><span class="source-card-type type-ai">AI</span><img src="${aiImg}" alt="AI"><div class="source-card-label">Gemini AI</div></div></div><button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="regenAI('${key}')">↺ 재생성</button>`;
+    showSuccess('AI 재생성 완료!');
+  }else{container.innerHTML=`<div style="padding:12px;color:var(--danger);font-size:11px;">생성 실패</div><button class="btn btn-secondary btn-sm" onclick="regenAI('${key}')">↺ 재시도</button>`;}
 }
 
-async function regenPexels(key){
+async function regenVideos(key){
   if(!currentScript)return;const kw=collectedSources[key]?.keyword||currentScript.product;
-  const grid=document.getElementById(`grid-${key}`);if(grid)grid.innerHTML='<div style="padding:16px;color:var(--muted);font-size:12px;">재검색 중...</div>';
-  const videos=await fetchPexelsVideos(kw,3);collectedSources[key]={...collectedSources[key]||{},videos,selected:null};
-  if(grid)grid.innerHTML=videos.length===0?`<div style="padding:20px;color:var(--muted);font-size:13px;grid-column:1/-1;">검색 결과 없음</div>`:videos.map((v,i)=>`<div class="source-card" onclick="selectSource('${key}',${i},null,this)"><span class="source-card-type type-video">영상</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration}초 · Pexels</div></div>`).join('');
+  const grid=document.getElementById(`grid-video-${key}`);if(grid)grid.innerHTML='<div style="padding:12px;color:var(--muted);font-size:11px;">재검색 중...</div>';
+  const[pexels,pixabay]=await Promise.all([fetchPexelsVideos(kw,2),fetchPixabayVideos(kw,2)]);
+  const allVideos=[...pexels,...pixabay];
+  collectedSources[key]={...collectedSources[key]||{},videos:allVideos,selected:null};
+  if(grid)grid.innerHTML=allVideos.length===0?`<div style="padding:16px;color:var(--muted);font-size:12px;grid-column:1/-1;">검색 결과 없음</div>`:allVideos.map((v,i)=>`<div class="source-card" onclick="selectSourceVideo('${key}',${i},this)"><span class="source-card-type type-video">${v.source==='pixabay'?'Pixabay':'Pexels'}</span><img src="${v.thumb}" alt=""><div class="source-card-label">${v.duration||''}초</div></div>`).join('');
   showSuccess('재검색 완료!');
 }
 
@@ -927,19 +870,24 @@ async function onStartRender(){
   document.getElementById('renderBtn').disabled=true;
   setProgress(0);setStep('trigger','active');
 
+  // base64 제거, URL/선택정보만 전송
   const lightSources={};
   for(const [key,val] of Object.entries(collectedSources)){
     const selected=val.selected;
     if(!selected){lightSources[key]={};}
-    else if(selected.idx==='upload'||selected.idx==='ai'){lightSources[key]={selected:{idx:'ai',data:{}}};}
-    else if(selected.data?.url){lightSources[key]={selected:{idx:selected.idx,data:{url:selected.data.url,duration:selected.data.duration}}};}
+    else if(selected.type==='upload'||selected.type==='ai'){lightSources[key]={selected:{idx:'ai',type:'ai',data:{}}};}
+    else if(selected.data?.url){lightSources[key]={selected:{idx:selected.idx,type:selected.type,data:{url:selected.data.url,duration:selected.data.duration}}};}
     else{lightSources[key]={};}
   }
 
   try{
     const scriptStr=JSON.stringify(currentScript);const sourcesStr=JSON.stringify(lightSources);
     console.log('전송 크기 — script:',scriptStr.length,'sources:',sourcesStr.length);
-    const res=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`,{method:'POST',headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({ref:'main',inputs:{script_data:scriptStr,sources_data:sourcesStr}})});
+    const res=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify({ref:'main',inputs:{script_data:scriptStr,sources_data:sourcesStr}})
+    });
     if(res.status!==204){const err=await res.json();throw new Error(err.message||'트리거 실패');}
     setStep('trigger','done');setProgress(15);showSuccess('GitHub Actions 시작됨!');
     setTimeout(()=>pollRunStatus(token),4000);
@@ -972,9 +920,9 @@ function updateStepsFromRun(run){
   if(run.status==='queued'){setStep('trigger','done');setProgress(15);}
   else if(run.status==='in_progress'){
     setStep('trigger','done');
-    stepTimers.push(setTimeout(()=>{setStep('tts','done');setStep('download','active');setProgress(40);},8000));
-    stepTimers.push(setTimeout(()=>{setStep('download','done');setStep('ffmpeg','active');setProgress(65);},20000));
-    stepTimers.push(setTimeout(()=>{setStep('ffmpeg','done');setProgress(85);},35000));
+    stepTimers.push(setTimeout(()=>{setStep('tts','done');setStep('download','active');setProgress(35);},8000));
+    stepTimers.push(setTimeout(()=>{setStep('download','done');setStep('ffmpeg','active');setProgress(65);},25000));
+    stepTimers.push(setTimeout(()=>{setStep('ffmpeg','done');setProgress(88);},45000));
   }
 }
 
@@ -982,18 +930,24 @@ async function showDownloadLink(token,runId){
   try{
     const res=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}/artifacts`,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}});
     const data=await res.json();const artifact=data.artifacts?.find(a=>a.name==='completed-video');
-    if(artifact){window._artifactId=artifact.id;window._githubToken=token;document.getElementById('renderResult').style.display='block';document.getElementById('renderResultDesc').textContent=`${currentScript.product} 영상이 완성됐습니다!`;let count=parseInt(localStorage.getItem('video_count')||'0');localStorage.setItem('video_count',count+1);updateStats();}
-    else{showRenderError('아티팩트를 찾을 수 없습니다. GitHub Actions에서 직접 확인해주세요.');}
+    if(artifact){
+      window._artifactId=artifact.id;window._githubToken=token;
+      document.getElementById('renderResult').style.display='block';
+      document.getElementById('renderResultDesc').textContent=`${currentScript.product} 영상이 완성됐습니다!`;
+      let count=parseInt(localStorage.getItem('video_count')||'0');localStorage.setItem('video_count',count+1);updateStats();
+    }else{showRenderError('아티팩트를 찾을 수 없습니다. GitHub Actions에서 직접 확인해주세요.');}
   }catch(err){showRenderError('다운로드 링크 생성 실패: '+err.message);}
 }
 
 async function onDownloadVideo(){
-  const token=window._githubToken;const artifactId=window._artifactId;if(!token||!artifactId){showError('다운로드 정보가 없습니다');return;}
+  const token=window._githubToken;const artifactId=window._artifactId;
+  if(!token||!artifactId){showError('다운로드 정보가 없습니다');return;}
   const btn=document.getElementById('downloadBtn');btn.disabled=true;btn.textContent='📥 다운로드 중...';
   try{
     const res=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/artifacts/${artifactId}/zip`,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}});
     if(!res.ok)throw new Error('다운로드 실패');
-    const blob=await res.blob();const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${currentScript.product}_쇼츠.zip`;a.click();URL.revokeObjectURL(url);
+    const blob=await res.blob();const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`${currentScript.product}_쇼츠.zip`;a.click();URL.revokeObjectURL(url);
     showSuccess('다운로드 완료! ZIP 안에 final.mp4가 있습니다.');
   }catch(err){showError('다운로드 실패: '+err.message);openActionsLink();}
   finally{btn.disabled=false;btn.textContent='📥 완성 영상 다운로드';}
@@ -1008,9 +962,10 @@ function showRenderError(msg){document.getElementById('renderError').style.displ
 function renderVoiceSelector(categoryKey){
   const voice=VOICE_MAP[categoryKey]||VOICE_MAP['gadget'];
   ['voiceSelector','audioPlayer'].forEach(id=>{const el=document.getElementById(id);if(el)el.remove();});
-  const div=document.createElement('div');div.id='voiceSelector';div.style.cssText='margin-top:16px;padding:16px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);';
+  const div=document.createElement('div');div.id='voiceSelector';
+  div.style.cssText='margin-top:16px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);';
   div.innerHTML=`
-    <div style="font-size:11px;color:var(--accent2);font-family:'Space Mono',monospace;margin-bottom:10px;">🎙️ 나레이션 목소리 설정</div>
+    <div style="font-size:11px;color:var(--accent2);font-family:'Space Mono',monospace;margin-bottom:10px;">🎙️ 나레이션 목소리</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <select id="voiceSelect" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;">
         <option value="ko-KR-Wavenet-A|FEMALE" ${voice.name==='ko-KR-Wavenet-A'?'selected':''}>여성 A — 따뜻하고 부드러움</option>
@@ -1020,11 +975,11 @@ function renderVoiceSelector(categoryKey){
       </select>
       <span style="font-size:11px;color:var(--accent3);">✦ ${voice.label}</span>
     </div>
-    <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;">
-      <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">말하기 속도</div><input type="range" id="voiceSpeed" min="0.8" max="1.4" step="0.05" value="1.15" style="width:100%;" oninput="document.getElementById('voiceSpeedVal').textContent=parseFloat(this.value).toFixed(2)"></div>
-      <div style="font-size:13px;font-family:'Space Mono',monospace;color:var(--accent);min-width:36px;" id="voiceSpeedVal">1.15</div>
-      <div style="flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">음높이</div><input type="range" id="voicePitch" min="-2" max="4" step="0.5" value="1.5" style="width:100%;" oninput="document.getElementById('voicePitchVal').textContent=parseFloat(this.value).toFixed(1)"></div>
-      <div style="font-size:13px;font-family:'Space Mono',monospace;color:var(--accent);min-width:32px;" id="voicePitchVal">1.5</div>
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px;">
+      <div style="flex:1;"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">속도</div><input type="range" id="voiceSpeed" min="0.8" max="1.4" step="0.05" value="1.15" style="width:100%;" oninput="document.getElementById('voiceSpeedVal').textContent=parseFloat(this.value).toFixed(2)"></div>
+      <div style="font-size:12px;font-family:'Space Mono',monospace;color:var(--accent);min-width:32px;" id="voiceSpeedVal">1.15</div>
+      <div style="flex:1;"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;">음높이</div><input type="range" id="voicePitch" min="-2" max="4" step="0.5" value="1.5" style="width:100%;" oninput="document.getElementById('voicePitchVal').textContent=parseFloat(this.value).toFixed(1)"></div>
+      <div style="font-size:12px;font-family:'Space Mono',monospace;color:var(--accent);min-width:28px;" id="voicePitchVal">1.5</div>
     </div>
     <button id="ttsBtn" onclick="onGenerateTTS()" style="width:100%;padding:10px;background:rgba(6,182,212,.15);color:var(--accent2);border:1px solid rgba(6,182,212,.3);border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;font-family:'Noto Sans KR',sans-serif;">🎙️ 음성 미리듣기</button>
   `;
@@ -1033,8 +988,10 @@ function renderVoiceSelector(categoryKey){
 
 async function generateTTS(script){
   const googleKey=CONFIG.get(CONFIG.KEYS.GOOGLE_CLOUD);if(!googleKey){showError('Google Cloud API 키를 설정해주세요');return null;}
-  const voiceSelect=document.getElementById('voiceSelect');const[voiceName,voiceGender]=voiceSelect?voiceSelect.value.split('|'):[VOICE_MAP['gadget'].name,VOICE_MAP['gadget'].gender];
-  const speed=parseFloat(document.getElementById('voiceSpeed')?.value||'1.15');const pitch=parseFloat(document.getElementById('voicePitch')?.value||'1.5');
+  const voiceSelect=document.getElementById('voiceSelect');
+  const[voiceName,voiceGender]=voiceSelect?voiceSelect.value.split('|'):[VOICE_MAP['gadget'].name,VOICE_MAP['gadget'].gender];
+  const speed=parseFloat(document.getElementById('voiceSpeed')?.value||'1.15');
+  const pitch=parseFloat(document.getElementById('voicePitch')?.value||'1.5');
   const isWow=script.type==='wow';
   const raw=isWow?`${script.opening} ${script.proof} ${script.usage} ${script.cta}`:`${script.opening} ${script.empathy} ${script.solution} ${script.cta}`;
   try{
@@ -1049,8 +1006,8 @@ async function onGenerateTTS(){
   if(!currentScript)return;const btn=document.getElementById('ttsBtn');btn.disabled=true;btn.textContent='🎙️ 생성중...';
   const result=await generateTTS(currentScript);btn.disabled=false;btn.textContent='🎙️ 음성 미리듣기';if(!result)return;
   const existing=document.getElementById('audioPlayer');if(existing)existing.remove();
-  const div=document.createElement('div');div.id='audioPlayer';div.style.cssText='margin-top:12px;padding:16px;background:var(--surface);border-radius:10px;border:1px solid rgba(16,185,129,.3);';
-  div.innerHTML=`<div style="font-size:11px;color:var(--success);font-family:'Space Mono',monospace;margin-bottom:8px;">✅ 나레이션 미리듣기</div><audio controls style="width:100%;margin-bottom:10px;"><source src="${result.url}" type="audio/mp3"></audio><button class="btn btn-secondary btn-sm" onclick="downloadAudio(window._audioBlob,'나레이션.mp3')">📥 MP3 다운로드</button>`;
+  const div=document.createElement('div');div.id='audioPlayer';div.style.cssText='margin-top:10px;padding:14px;background:var(--surface);border-radius:10px;border:1px solid rgba(16,185,129,.3);';
+  div.innerHTML=`<div style="font-size:11px;color:var(--success);font-family:'Space Mono',monospace;margin-bottom:8px;">✅ 나레이션 미리듣기</div><audio controls style="width:100%;margin-bottom:8px;"><source src="${result.url}" type="audio/mp3"></audio><button class="btn btn-secondary btn-sm" onclick="downloadAudio(window._audioBlob,'나레이션.mp3')">📥 MP3 다운로드</button>`;
   document.getElementById('voiceSelector').after(div);window._audioBlob=result.blob;showSuccess('음성 생성 완료!');
 }
 
@@ -1068,8 +1025,23 @@ function loadScript(i){const history=loadHistory();currentScript=history[i];cons
 function clearHistory(){if(!confirm('히스토리를 모두 삭제할까요?'))return;localStorage.removeItem('script_history');renderHistory();updateStats();showSuccess('삭제됐습니다');}
 
 // ===== 설정 =====
-function loadKeys(){document.getElementById('key-claude').value=CONFIG.get(CONFIG.KEYS.CLAUDE)||'';document.getElementById('key-gemini').value=CONFIG.get(CONFIG.KEYS.GEMINI)||'';document.getElementById('key-gcloud').value=CONFIG.get(CONFIG.KEYS.GOOGLE_CLOUD)||'';document.getElementById('key-pexels').value=CONFIG.get(CONFIG.KEYS.PEXELS)||'';document.getElementById('key-github').value=CONFIG.get('github_token')||'';}
-function saveKeys(){CONFIG.set(CONFIG.KEYS.CLAUDE,document.getElementById('key-claude').value.trim());CONFIG.set(CONFIG.KEYS.GEMINI,document.getElementById('key-gemini').value.trim());CONFIG.set(CONFIG.KEYS.GOOGLE_CLOUD,document.getElementById('key-gcloud').value.trim());CONFIG.set(CONFIG.KEYS.PEXELS,document.getElementById('key-pexels').value.trim());CONFIG.set('github_token',document.getElementById('key-github').value.trim());updateStatus();showSuccess('API 키가 저장됐습니다');}
+function loadKeys(){
+  document.getElementById('key-claude').value=CONFIG.get(CONFIG.KEYS.CLAUDE)||'';
+  document.getElementById('key-gemini').value=CONFIG.get(CONFIG.KEYS.GEMINI)||'';
+  document.getElementById('key-gcloud').value=CONFIG.get(CONFIG.KEYS.GOOGLE_CLOUD)||'';
+  document.getElementById('key-pexels').value=CONFIG.get(CONFIG.KEYS.PEXELS)||'';
+  document.getElementById('key-pixabay').value=CONFIG.get(CONFIG.KEYS.PIXABAY)||'';
+  document.getElementById('key-github').value=CONFIG.get('github_token')||'';
+}
+function saveKeys(){
+  CONFIG.set(CONFIG.KEYS.CLAUDE,      document.getElementById('key-claude').value.trim());
+  CONFIG.set(CONFIG.KEYS.GEMINI,      document.getElementById('key-gemini').value.trim());
+  CONFIG.set(CONFIG.KEYS.GOOGLE_CLOUD,document.getElementById('key-gcloud').value.trim());
+  CONFIG.set(CONFIG.KEYS.PEXELS,      document.getElementById('key-pexels').value.trim());
+  CONFIG.set(CONFIG.KEYS.PIXABAY,     document.getElementById('key-pixabay').value.trim());
+  CONFIG.set('github_token',          document.getElementById('key-github').value.trim());
+  updateStatus();showSuccess('API 키가 저장됐습니다');
+}
 function toggleShow(id){const el=document.getElementById(id);el.type=el.type==='password'?'text':'password';}
 function updateStatus(){const ready=!!CONFIG.get(CONFIG.KEYS.CLAUDE);document.getElementById('statusDot').className='dot '+(ready?'on':'off');document.getElementById('statusText').textContent=ready?'Claude 연결됨':'API 미연결';}
 function updateStats(){const h=loadHistory();document.getElementById('s-scripts').textContent=h.length;document.getElementById('s-pain').textContent=h.filter(s=>s.type==='pain').length;document.getElementById('s-wow').textContent=h.filter(s=>s.type==='wow').length;document.getElementById('s-videos').textContent=localStorage.getItem('video_count')||'0';}
