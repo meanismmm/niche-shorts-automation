@@ -611,7 +611,7 @@ async function onAnalyze(){
   currentAnalysis.coupangLink = link;
   currentAnalysis.categoryKey = selectedCatProducts;
 
-  renderAnalysisResult(analysis);
+renderAnalysisResult(analysis);
   showSuccess('분석 완료! 스크립트 생성으로 이동하세요.');
 }
 
@@ -628,10 +628,12 @@ function renderAnalysisResult(a){
       <div class="analysis-row"><div class="analysis-key">시각 장면</div><div class="analysis-val"><div class="chip-wrap">${(a.visual_scenes||[]).map(s=>`<span class="chip chip-green">${s}</span>`).join('')}</div></div></div>
       <div class="analysis-row"><div class="analysis-key">권장 유형</div><div class="analysis-val"><span class="badge ${a.recommended_type==='wow'?'badge-wow':'badge-pain'}">${a.recommended_type==='wow'?'✨ WOW형':'⚡ PAIN형'}</span></div></div>
     </div>
+    <div id="sourceSearchLinks"></div>
     <button class="btn btn-primary" style="margin-top:14px;width:100%;" onclick="go('script',document.querySelectorAll('.nav-item')[2])">
       ✍️ 스크립트 생성으로 이동 →
     </button>
   `;
+  renderSourceSearchLinks(a.product_name, 'sourceSearchLinks');
 }
 
 // ===== 스크립트 페이지 상태 =====
